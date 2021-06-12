@@ -17,7 +17,7 @@ fun BoardView(gameState: GameState) {
         val rectX = size.width / board.width
         val rectY = size.height / board.height
         val blockLength = minOf(rectX, rectY)
-        val blockSize = Size(blockLength, blockLength)
+        val blockSize = Size(blockLength, -blockLength)
         val innerWidth = blockLength * board.width
         val innerHeight = blockLength * board.height
 
@@ -46,6 +46,16 @@ fun BoardView(gameState: GameState) {
                 topLeft = Offset(xpos, ypos),
                 size = blockSize,
                 color = Color.Blue
+            )
+        }
+
+        gameState.getShadow().forEach { pos ->
+            val xpos = blockLength * pos.x
+            val ypos = innerHeight - blockLength * pos.y
+            drawRect(
+                topLeft = Offset(xpos, ypos),
+                size = blockSize,
+                color = Color.LightGray
             )
         }
     }

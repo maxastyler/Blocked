@@ -14,6 +14,8 @@ class GameViewModel @Inject constructor() : ViewModel() {
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
     val gameState = _gameState.asStateFlow()
 
+    init {startGame()}
+
     fun startGame() {
         _gameState.value = GameState(10, 30)
     }

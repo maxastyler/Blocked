@@ -67,6 +67,9 @@ data class GameState(
         return dropPos
     }
 
+    fun getShadow(): List<Vec2> = this.pieces.first().getCoordinates(this.rotation)
+        .map { coord -> getDroppedPosition() + coord }
+
     fun drop(): GameState =
         when (val newState = tryPosition(this.position - Vec2(0, 1))) {
             is GameState -> newState
@@ -120,7 +123,7 @@ data class GameState(
             held = this.pieces.first(),
             pieces = listOf(this.held) + this.pieces.drop(1)
         )
-    }.copy(position = Vec2(board.width/2, board.height), rotation = Rotation.None)
+    }.copy(position = Vec2(board.width / 2, board.height), rotation = Rotation.None)
 
     fun pause(): GameState = this.copy(mode = Mode.Paused)
     fun resume(): GameState = this.copy(mode = Mode.Playing)
