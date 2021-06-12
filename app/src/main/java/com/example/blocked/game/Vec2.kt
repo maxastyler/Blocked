@@ -1,10 +1,7 @@
 package com.example.blocked.game
 
-sealed class Rotation {
-    object Left : Rotation()
-    object Right : Rotation()
-    object None : Rotation()
-    object Half : Rotation()
+enum class Rotation {
+    Left, Right, None, Half;
 
     fun toInt() = when (this) {
         None -> 0

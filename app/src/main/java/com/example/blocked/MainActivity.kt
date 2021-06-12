@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collection.mutableVectorOf
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.blocked.ui.GameView
 import com.example.blocked.ui.theme.BlockedTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +19,7 @@ class MainActivity : ComponentActivity() {
             BlockedTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    Greeting("Android")
+                    GameView()
                 }
             }
         }

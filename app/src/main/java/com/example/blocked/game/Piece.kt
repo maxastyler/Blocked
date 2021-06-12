@@ -75,4 +75,7 @@ enum class Piece {
             }
         }
 
+    companion object {
+        fun shuffled(): List<Piece> = listOf(I, J, L, O, S, T, Z).shuffled()
+    }
 }
