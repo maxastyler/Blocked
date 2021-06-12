@@ -27,7 +27,6 @@ sealed class Rotation {
     operator fun minus(other: Rotation): Rotation = fromInt(this.toInt() - other.toInt())
 }
 
-
 data class Vec2(val x: Int, val y: Int) {
     operator fun plus(other: Vec2): Vec2 = Vec2(this.x + other.x, this.y + other.y)
     operator fun minus(other: Vec2): Vec2 = Vec2(this.x - other.x, this.y - other.y)
@@ -39,5 +38,4 @@ data class Vec2(val x: Int, val y: Int) {
         Rotation.Half -> Vec2(-this.x, -this.y)
         Rotation.Left -> Vec2(-this.y, this.x)
     }
-
 }
