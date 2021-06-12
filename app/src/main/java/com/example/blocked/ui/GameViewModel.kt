@@ -15,7 +15,7 @@ class GameViewModel @Inject constructor() : ViewModel() {
     val gameState = _gameState.asStateFlow()
 
     init {
-        startGame()
+        startGame(10, 30)
     }
 
     fun startGame(width: Int = 10, height: Int = 30) {

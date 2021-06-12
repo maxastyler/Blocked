@@ -3,6 +3,16 @@ package com.example.blocked.game
 enum class Piece {
     I, J, L, O, S, T, Z;
 
+    override fun toString(): String = when (this) {
+        I -> "I"
+        J -> "J"
+        L -> "L"
+        O -> "O"
+        S -> "S"
+        T -> "T"
+        Z -> "Z"
+    }
+
     fun getCoordinates(rotation: Rotation) =
         when (this) {
             I -> when (rotation) {
@@ -52,25 +62,121 @@ enum class Piece {
     fun getKicks(from: Rotation, to: Rotation) =
         when (this) {
             I -> when (from to to) {
-                (Rotation.None to Rotation.Right) -> listOf(Vec2( 0, 0) ,Vec2(-2, 0) ,Vec2( 1, 0) ,Vec2(-2,-1) ,Vec2( 1, 2))
-                (Rotation.Right to Rotation.None) -> listOf(Vec2( 0, 0),Vec2( 2, 0),Vec2(-1, 0),Vec2( 2, 1),Vec2(-1,-2))
-                (Rotation.Right to Rotation.Half) -> listOf(Vec2( 0, 0) ,Vec2(-1, 0) ,Vec2( 2, 0) ,Vec2(-1, 2) ,Vec2( 2,-1))
-                (Rotation.Half to Rotation.Right) -> listOf(Vec2( 0, 0),Vec2( 1, 0),Vec2(-2, 0),Vec2( 1,-2),Vec2(-2, 1))
-                (Rotation.Half to Rotation.Left) -> listOf(Vec2( 0, 0) ,Vec2( 2, 0) ,Vec2(-1, 0) ,Vec2( 2, 1) ,Vec2(-1,-2))
-                (Rotation.Left to Rotation.Half) -> listOf(Vec2( 0, 0),Vec2(-2, 0),Vec2( 1, 0),Vec2(-2,-1),Vec2( 1, 2))
-                (Rotation.Left to Rotation.None) -> listOf(Vec2( 0, 0) ,Vec2( 1, 0) ,Vec2(-2, 0) ,Vec2( 1,-2) ,Vec2(-2, 1))
-                (Rotation.None to Rotation.Left) -> listOf(Vec2( 0, 0),Vec2(-1, 0),Vec2( 2, 0),Vec2(-1, 2),Vec2( 2,-1))
+                (Rotation.None to Rotation.Right) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(-2, 0),
+                    Vec2(1, 0),
+                    Vec2(-2, -1),
+                    Vec2(1, 2)
+                )
+                (Rotation.Right to Rotation.None) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(2, 0),
+                    Vec2(-1, 0),
+                    Vec2(2, 1),
+                    Vec2(-1, -2)
+                )
+                (Rotation.Right to Rotation.Half) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(-1, 0),
+                    Vec2(2, 0),
+                    Vec2(-1, 2),
+                    Vec2(2, -1)
+                )
+                (Rotation.Half to Rotation.Right) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(1, 0),
+                    Vec2(-2, 0),
+                    Vec2(1, -2),
+                    Vec2(-2, 1)
+                )
+                (Rotation.Half to Rotation.Left) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(2, 0),
+                    Vec2(-1, 0),
+                    Vec2(2, 1),
+                    Vec2(-1, -2)
+                )
+                (Rotation.Left to Rotation.Half) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(-2, 0),
+                    Vec2(1, 0),
+                    Vec2(-2, -1),
+                    Vec2(1, 2)
+                )
+                (Rotation.Left to Rotation.None) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(1, 0),
+                    Vec2(-2, 0),
+                    Vec2(1, -2),
+                    Vec2(-2, 1)
+                )
+                (Rotation.None to Rotation.Left) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(-1, 0),
+                    Vec2(2, 0),
+                    Vec2(-1, 2),
+                    Vec2(2, -1)
+                )
                 else -> throw IllegalStateException()
             }
             else -> when (from to to) {
-                (Rotation.None to Rotation.Right) -> listOf(Vec2( 0, 0) ,Vec2(-1, 0) ,Vec2(-1, 1) ,Vec2( 0,-2) ,Vec2(-1,-2))
-                (Rotation.Right to Rotation.None) -> listOf(Vec2( 0, 0),Vec2( 1, 0),Vec2( 1,-1),Vec2( 0, 2),Vec2( 1, 2))
-                (Rotation.Right to Rotation.Half) -> listOf(Vec2( 0, 0) ,Vec2( 1, 0) ,Vec2( 1,-1) ,Vec2( 0, 2) ,Vec2( 1, 2))
-                (Rotation.Half to Rotation.Right) -> listOf(Vec2( 0, 0),Vec2(-1, 0),Vec2(-1, 1),Vec2( 0,-2),Vec2(-1,-2))
-                (Rotation.Half to Rotation.Left) -> listOf(Vec2( 0, 0) ,Vec2( 1, 0) ,Vec2( 1, 1) ,Vec2( 0,-2) ,Vec2( 1,-2))
-                (Rotation.Left to Rotation.Half) -> listOf(Vec2( 0, 0),Vec2(-1, 0),Vec2(-1,-1),Vec2( 0, 2),Vec2(-1, 2))
-                (Rotation.Left to Rotation.None) -> listOf(Vec2( 0, 0) ,Vec2(-1, 0) ,Vec2(-1,-1) ,Vec2( 0, 2) ,Vec2(-1, 2))
-                (Rotation.None to Rotation.Left) -> listOf(Vec2( 0, 0),Vec2( 1, 0),Vec2( 1, 1),Vec2( 0,-2),Vec2( 1,-2))
+                (Rotation.None to Rotation.Right) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(-1, 0),
+                    Vec2(-1, 1),
+                    Vec2(0, -2),
+                    Vec2(-1, -2)
+                )
+                (Rotation.Right to Rotation.None) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(1, 0),
+                    Vec2(1, -1),
+                    Vec2(0, 2),
+                    Vec2(1, 2)
+                )
+                (Rotation.Right to Rotation.Half) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(1, 0),
+                    Vec2(1, -1),
+                    Vec2(0, 2),
+                    Vec2(1, 2)
+                )
+                (Rotation.Half to Rotation.Right) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(-1, 0),
+                    Vec2(-1, 1),
+                    Vec2(0, -2),
+                    Vec2(-1, -2)
+                )
+                (Rotation.Half to Rotation.Left) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(1, 0),
+                    Vec2(1, 1),
+                    Vec2(0, -2),
+                    Vec2(1, -2)
+                )
+                (Rotation.Left to Rotation.Half) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(-1, 0),
+                    Vec2(-1, -1),
+                    Vec2(0, 2),
+                    Vec2(-1, 2)
+                )
+                (Rotation.Left to Rotation.None) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(-1, 0),
+                    Vec2(-1, -1),
+                    Vec2(0, 2),
+                    Vec2(-1, 2)
+                )
+                (Rotation.None to Rotation.Left) -> listOf(
+                    Vec2(0, 0),
+                    Vec2(1, 0),
+                    Vec2(1, 1),
+                    Vec2(0, -2),
+                    Vec2(1, -2)
+                )
                 else -> throw IllegalStateException()
             }
         }

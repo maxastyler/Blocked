@@ -9,7 +9,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collection.mutableVectorOf
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.blocked.ui.GameView
+import com.example.blocked.ui.Home
 import com.example.blocked.ui.theme.BlockedTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,10 +23,20 @@ class MainActivity : ComponentActivity() {
             BlockedTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    GameView()
+                    Main()
                 }
             }
         }
+    }
+}
+
+@Composable
+fun Main() {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "home") {
+        composable("home") { Home({navController.navigate("game")}) }
+        composable("game") { GameView() }
     }
 }
 
