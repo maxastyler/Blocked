@@ -19,7 +19,7 @@ class Vec2Test : TestCase() {
     fun testRotate() {
         assertEquals(Vec2(2, 3).rotate(Rotation.None), Vec2(2, 3))
         assertEquals(Vec2(2, 3).rotate(Rotation.Right), Vec2(3, -2))
-        assertEquals(Vec2(2, 3).rotate(Rotation.Right + Rotation.Right), Vec2(-3, -2))
+        assertEquals(Vec2(2, 3).rotate(Rotation.Right + Rotation.Right), Vec2(-2, -3))
         assertEquals(Vec2(2, 3).rotate(Rotation.Left), Vec2(-3, 2))
     }
 }

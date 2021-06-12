@@ -13,4 +13,8 @@ class RotationTest : TestCase() {
         assertEquals(Rotation.Half + Rotation.Right + Rotation.Left, Rotation.Half)
         assertEquals(Rotation.None + Rotation.None, Rotation.None)
     }
+
+    fun testMinus() {
+        assertEquals(Rotation.Left - Rotation.Right, Rotation.Half)
+    }
 }

@@ -23,7 +23,8 @@ sealed class Rotation {
         }
     }
 
-    operator fun plus(other: Rotation): Rotation = Rotation.fromInt(this.toInt() + other.toInt())
+    operator fun plus(other: Rotation): Rotation = fromInt(this.toInt() + other.toInt())
+    operator fun minus(other: Rotation): Rotation = fromInt(this.toInt() - other.toInt())
 }
 
 
