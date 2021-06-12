@@ -11,15 +11,25 @@ data class GameState(
     val rotation: Rotation,
     val board: Board,
     val pieces: List<Piece>,
-    val score: Int
+    val score: Int,
+    val held: Piece?,
+    val mode: Mode,
 ) {
+
+    enum class Mode {
+        Playing,
+        Paused,
+        GameOver,
+    }
 
     constructor(width: Int, height: Int) : this(
         position = Vec2(width / 2, height),
         rotation = Rotation.None,
         board = Board(width = width, height = height, blocks = mapOf()),
         pieces = Piece.shuffled(),
-        score = 0
+        score = 0,
+        held = null,
+        mode = Mode.Playing,
     )
 
     /**
@@ -57,32 +67,62 @@ data class GameState(
         return dropPos
     }
 
-    fun drop(): GameState = when (val newState = tryPosition(this.position - Vec2(0, 1)).apply { println(this) }) {
-        is GameState -> newState
-        else -> addPieceToBoard()
-    }
+    fun drop(): GameState =
+        when (val newState = tryPosition(this.position - Vec2(0, 1))) {
+            is GameState -> newState
+            else -> addPieceToBoard()
+        }
 
     fun hardDrop(): GameState {
         val pos = getDroppedPosition()
         when (val newState = tryPosition(pos)) {
-            null -> throw IllegalStateException("Couldn't hard drop!")
+            null -> return this.drop()
             else -> return newState.drop()
         }
     }
 
+    /**
+     * If there are less than 7 pieces in the game state, generate some more
+     * @return The game state with more pieces
+     */
+    fun ensureEnoughPieces(): GameState = if (this.pieces.size < 7) {
+        this.copy(pieces = this.pieces + Piece.shuffled())
+    } else {
+        this
+    }
+
     fun addPieceToBoard(): GameState {
-        val newBoard =
-            board.addPiece(this.pieces.first(), this.position, this.rotation, { MyBlock })
+        var newBoard =
+            board.addPiece(this.pieces.first(), this.position, this.rotation) { MyBlock }
         val (clearedLines, lineOffsets) = newBoard.getLineOffsets()
+        val newPosition = Vec2(this.board.width / 2, this.board.height)
+        newBoard = newBoard.applyRowChanges(clearedLines, lineOffsets)
         return this.copy(
-            board = newBoard.applyRowChanges(clearedLines, lineOffsets),
+            board = newBoard,
             score = this.score + clearedLines.size,
-            position = Vec2(this.board.width / 2, this.board.height),
+            position = newPosition,
             rotation = Rotation.None,
-            pieces = if (pieces.size < 7) this.pieces.drop(1) + pieces.shuffled() else this.pieces.drop(
-                1
-            )
+            pieces = this.pieces.drop(1),
+            mode = if (!newBoard.isValidPosition(this.pieces[1], newPosition, Rotation.None)) {
+                Mode.GameOver
+            } else {
+                this.mode
+            }
+        ).ensureEnoughPieces()
+    }
+
+    fun holdPiece(): GameState = when (held) {
+        null -> this.copy(
+            held = this.pieces.first(),
+            pieces = this.pieces.drop(1)
+        ).ensureEnoughPieces()
+        else -> this.copy(
+            held = this.pieces.first(),
+            pieces = listOf(this.held) + this.pieces.drop(1)
         )
     }
+
+    fun pause(): GameState = this.copy(mode = Mode.Paused)
+    fun resume(): GameState = this.copy(mode = Mode.Playing)
 }
 
