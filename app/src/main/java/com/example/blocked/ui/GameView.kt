@@ -1,5 +1,6 @@
 package com.example.blocked.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -12,10 +13,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.blocked.game.BoardView
-import com.example.blocked.game.GameState
-import com.example.blocked.game.Rotation
-import com.example.blocked.game.Vec2
+import com.example.blocked.game.*
+import kotlinx.coroutines.delay
 
 @Composable
 fun GameView(viewModel: GameViewModel = viewModel()) {
@@ -23,6 +22,12 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
     var offset by remember { mutableStateOf(Offset(0F, 0F)) }
     val dragAmount = 30F
     val dropAmount = 200F
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(500)
+            viewModel.drop()
+        }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.mode == GameState.Mode.GameOver) {
             Text(text = "GAME OVER")
@@ -65,6 +70,16 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
     }
 }
 
+
+@Composable
+fun PieceView(piece: Piece) {
+    val coords = piece.getCoordinates(Rotation.None)
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val minX = coords.minByOrNull { it.x }
+        val minY = coords.minByOrNull { it.y }
+
+    }
+}
 
 @Preview
 @Composable

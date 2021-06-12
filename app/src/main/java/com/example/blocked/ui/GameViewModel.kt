@@ -14,10 +14,12 @@ class GameViewModel @Inject constructor() : ViewModel() {
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
     val gameState = _gameState.asStateFlow()
 
-    init {startGame()}
+    init {
+        startGame()
+    }
 
-    fun startGame() {
-        _gameState.value = GameState(10, 30)
+    fun startGame(width: Int = 10, height: Int = 30) {
+        _gameState.value = GameState(width = width, height = height)
     }
 
     fun rotate(rotation: Rotation) {
@@ -31,7 +33,8 @@ class GameViewModel @Inject constructor() : ViewModel() {
     }
 
     fun move(direction: Vec2) {
-        gameState.value.tryPosition(gameState.value.position + direction)?.run { _gameState.value = this }
+        gameState.value.tryPosition(gameState.value.position + direction)
+            ?.run { _gameState.value = this }
     }
 
     fun drop() {
