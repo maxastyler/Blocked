@@ -120,7 +120,7 @@ data class GameState(
             held = this.pieces.first(),
             pieces = listOf(this.held) + this.pieces.drop(1)
         )
-    }
+    }.copy(position = Vec2(board.width/2, board.height), rotation = Rotation.None)
 
     fun pause(): GameState = this.copy(mode = Mode.Paused)
     fun resume(): GameState = this.copy(mode = Mode.Playing)

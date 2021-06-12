@@ -6,23 +6,20 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.blocked.game.BoardView
 import com.example.blocked.game.GameState
 import com.example.blocked.game.Rotation
 import com.example.blocked.game.Vec2
 
 @Composable
-fun GameView() {
-    var state by remember { mutableStateOf(GameState(10, 30)) }
+fun GameView(viewModel: GameViewModel = viewModel()) {
+    val state by viewModel.gameState.collectAsState()
     var offset by remember { mutableStateOf(Offset(0F, 0F)) }
     val dragAmount = 30F
     val dropAmount = 200F
@@ -38,22 +35,18 @@ fun GameView() {
                         offset += amount
                         while (offset.x > dragAmount) {
                             offset = offset.copy(x = offset.x - dragAmount)
-                            state
-                                .tryPosition(state.position + Vec2(1, 0))
-                                ?.let { state = it }
+                            viewModel.move(Vec2(1, 0))
                         }
                         while (offset.x < -dragAmount) {
                             offset = offset.copy(x = offset.x + dragAmount)
-                            state
-                                .tryPosition(state.position + Vec2(-1, 0))
-                                ?.let { state = it }
+                            viewModel.move(Vec2(-1, 0))
                         }
                         while (offset.y < -dragAmount) {
                             offset = offset.copy(y = offset.y + dragAmount)
-                            state = state.drop()
+                            viewModel.drop()
                         }
                         if (offset.y > dropAmount) {
-                            state = state.hardDrop()
+                            viewModel.hold()
                             offset = offset.copy(y = 0F)
                         }
                     }
@@ -62,19 +55,16 @@ fun GameView() {
             .pointerInput(Unit) {
                 detectTapGestures { pos ->
                     if (pos.x > size.width / 2) {
-                        state
-                            .tryRotation(state.rotation + Rotation.Right)
-                            ?.let { state = it }
+                        viewModel.rotate(Rotation.Right)
                     } else {
-                        state
-                            .tryRotation(state.rotation + Rotation.Left)
-                            ?.let { state = it }
+                        viewModel.rotate(Rotation.Left)
                     }
                 }
             })
         BoardView(state)
     }
 }
+
 
 @Preview
 @Composable
