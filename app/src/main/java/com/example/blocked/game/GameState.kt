@@ -14,6 +14,7 @@ data class GameState(
     val score: Int,
     val held: Piece?,
     val mode: Mode,
+    val holdUsed: Boolean = false,
 ) {
 
     enum class Mode {
@@ -52,7 +53,6 @@ data class GameState(
         }
         return null
     }
-
 
     /**
      * Get the dropped position of this piece
@@ -110,20 +110,27 @@ data class GameState(
                 Mode.GameOver
             } else {
                 this.mode
-            }
+            },
+            holdUsed = false,
         ).ensureEnoughPieces()
     }
 
-    fun holdPiece(): GameState = when (held) {
-        null -> this.copy(
-            held = this.pieces.first(),
-            pieces = this.pieces.drop(1)
-        ).ensureEnoughPieces()
-        else -> this.copy(
-            held = this.pieces.first(),
-            pieces = listOf(this.held) + this.pieces.drop(1)
+    fun holdPiece(): GameState = if (!holdUsed) {
+        when (held) {
+            null -> this.copy(
+                held = this.pieces.first(),
+                pieces = this.pieces.drop(1)
+            ).ensureEnoughPieces()
+            else -> this.copy(
+                held = this.pieces.first(),
+                pieces = listOf(this.held) + this.pieces.drop(1)
+            )
+        }.copy(
+            position = Vec2(board.width / 2, board.height),
+            rotation = Rotation.None,
+            holdUsed = true
         )
-    }.copy(position = Vec2(board.width / 2, board.height), rotation = Rotation.None)
+    } else this
 
     fun pause(): GameState = this.copy(mode = Mode.Paused)
     fun resume(): GameState = this.copy(mode = Mode.Playing)
