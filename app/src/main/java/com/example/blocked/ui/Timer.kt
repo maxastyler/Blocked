@@ -40,5 +40,8 @@ class Timer(private val scope: CoroutineScope) {
         }
     }
 
+    /**
+     * Stop the timer if it's currently started
+     */
     fun stop() = job?.run { this.cancel() }
 }

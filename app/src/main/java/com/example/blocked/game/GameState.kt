@@ -1,5 +1,7 @@
 package com.example.blocked.game
 
+import kotlin.math.pow
+
 object MyBlock : Block {
     override fun toString(): String {
         return "B"
@@ -37,7 +39,7 @@ data class GameState(
 
     data class GameSettings(
         val startingHeight: Int,
-        val gameOverHeight: Int
+        val gameOverHeight: Int,
     ) {
         constructor(startingHeight: Int) : this(
             startingHeight = startingHeight,
@@ -49,7 +51,8 @@ data class GameState(
         val rotationsLeft: Int,
         val movesLeft: Int,
         val rotationLimit: Int,
-        val moveLimit: Int
+        val moveLimit: Int,
+        val timeOut: Long = 500L,
     ) {
         constructor(rotationLimit: Int, moveLimit: Int) : this(
             rotationsLeft = rotationLimit,
@@ -76,7 +79,7 @@ data class GameState(
         held = null,
         mode = Mode.Playing,
         lockDelay = LockDelay(15, 15),
-        settings = GameSettings(height)
+        settings = GameSettings(22)
     )
 
     /**
@@ -116,17 +119,20 @@ data class GameState(
     fun getShadow(): List<Vec2> = this.pieces.first().getCoordinates(this.rotation)
         .map { coord -> getDroppedPosition() + coord }
 
-    fun drop(computerDrop: Boolean = false): GameState =
+    /**
+     * Return a pair of (the new game state, whether the piece was locked)
+     */
+    fun drop(): Pair<GameState, Boolean> =
         when (val newState = tryPosition(this.position - Vec2(0, 1))) {
-            is GameState -> newState
-            else -> addPieceToBoard()
+            is GameState -> Pair(newState.resetLockDelay(), false)
+            else -> Pair(addPieceToBoard().resetLockDelay(), true)
         }
 
     fun hardDrop(): GameState {
         val pos = getDroppedPosition()
         when (val newState = tryPosition(pos)) {
-            null -> return this.drop()
-            else -> return newState.drop()
+            null -> return this.drop().first
+            else -> return newState.drop().first
         }
     }
 
@@ -141,9 +147,10 @@ data class GameState(
     }
 
     fun addScore(clearedLines: Set<Int>): GameState = this.copy(
-        score = Score(
+        score = this.score.copy(
             lastClearWasTetris = (clearedLines.size >= 4),
             score = this.score.score + when (clearedLines.size) {
+                0 -> 0
                 1 -> 1 * this.score.level
                 2 -> 3 * this.score.level
                 3 -> 5 * this.score.level
@@ -157,10 +164,19 @@ data class GameState(
             board.addPiece(this.pieces.first(), this.position, this.rotation) { MyBlock }
         val (clearedLines, lineOffsets) = newBoard.getLineOffsets()
         newBoard = newBoard.applyRowChanges(clearedLines, lineOffsets)
+        val isPieceAboveLimit = (0 until newBoard.width).any {
+            newBoard.blocks.containsKey(
+                Vec2(
+                    it,
+                    this.settings.gameOverHeight
+                )
+            )
+        }
         return this.copy(
             board = newBoard,
             pieces = this.pieces.drop(1),
             holdUsed = false,
+            mode = if (isPieceAboveLimit) Mode.GameOver else this.mode
         ).addScore(clearedLines).getNextPiece()
     }
 
@@ -193,6 +209,9 @@ data class GameState(
         }.copy(holdUsed = true).resetPosition()
     } else this
 
+    fun dropTime(): Long =
+        ((0.8 - ((this.score.level - 1) * 0.007)).pow(this.score.level - 1) * 1000).toLong()
+
     fun resetPosition(): GameState = this.copy(
         position = Vec2(
             board.width / 2 - pieces.first().offset, if (pieces.first() == Piece.I) {
@@ -202,8 +221,14 @@ data class GameState(
     )
 
     fun resetLockDelay(): GameState = this.copy(lockDelay = this.lockDelay.reset())
+    fun useLockRotation(): GameState =
+        this.copy(lockDelay = this.lockDelay.copy(rotationsLeft = this.lockDelay.rotationsLeft - 1))
+
+    fun useLockMovement(): GameState =
+        this.copy(lockDelay = this.lockDelay.copy(movesLeft = this.lockDelay.movesLeft - 1))
 
     fun pause(): GameState = this.copy(mode = Mode.Paused)
     fun resume(): GameState = this.copy(mode = Mode.Playing)
+
 }
 

@@ -4,11 +4,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -18,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.blocked.game.*
 import kotlinx.coroutines.delay
@@ -54,7 +53,7 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                             }
                             while (offset.y > dragAmount) {
                                 offset = offset.copy(y = offset.y - dragAmount)
-                                viewModel.drop()
+                                viewModel.drop(false)
                             }
                             if (offset.y < -dropAmount) {
                                 viewModel.hold()
@@ -72,12 +71,23 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                         }
                     }
                 })
-            Row() {
-                BoardView(state)
-                Column() {
-                    state.pieces.drop(1).take(4).forEach {
-                        PieceView(piece = it)
+            Column() {
+                Card(elevation = 3.dp, modifier = Modifier.padding(10.dp)) {
+                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        Column() {
+                            Text("Score: ${state.score.score}")
+                            Text("Level: ${state.score.level}")
+                        }
+                        Text("Held piece: ${state.held}")
                     }
+                }
+                Row() {
+                    Column(modifier = Modifier.align(Alignment.Bottom).padding(4.dp)) {
+                        state.pieces.drop(1).take(4).forEach {
+                            PieceView(piece = it)
+                        }
+                    }
+                    BoardView(state)
                 }
             }
         }

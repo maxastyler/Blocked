@@ -15,23 +15,23 @@ import javax.inject.Inject
 @HiltViewModel
 class GameViewModel @Inject constructor() : ViewModel() {
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
-    private val dropTimer = Timer(viewModelScope)
+    private val lockTimer = Timer(viewModelScope)
     private val gravityTimer = Timer(viewModelScope)
     val gameState = _gameState.asStateFlow()
 
     init {
-        startGame(10, 30)
         viewModelScope.launch {
-            dropTimer.events.collect { drop() }
+            lockTimer.events.collect { drop(false) }
         }
         viewModelScope.launch {
-            gravityTimer.events.collect { }
+            gravityTimer.events.collect { drop(true) }
         }
-        dropTimer.start(500L, true)
+        startGame()
     }
 
     fun startGame(width: Int = 10, height: Int = 30) {
-        _gameState.value = GameState(width = width, height = height)
+        _gameState.value = GameState(width = width, height = height).resetPosition()
+        gravityTimer.start(_gameState.value.dropTime(), true)
     }
 
     fun rotate(rotation: Rotation) {
@@ -39,19 +39,47 @@ class GameViewModel @Inject constructor() : ViewModel() {
             Rotation.Right, Rotation.Left ->
                 when (val newState =
                     gameState.value.tryRotation(gameState.value.rotation + rotation)) {
-                    is GameState -> _gameState.value = newState
+                    is GameState -> {
+                        val s = newState.useLockRotation()
+                        _gameState.value = s
+                        if (lockTimer.started) {
+                            lockTimer.start(s.lockDelay.timeOut)
+                        }
+                    }
                 }
         }
     }
 
     fun move(direction: Vec2) {
         gameState.value.tryPosition(gameState.value.position + direction)
-            ?.run { _gameState.value = this }
+            ?.run {
+                val newState = this.useLockMovement()
+                _gameState.value = newState
+                if (lockTimer.started) {
+                    lockTimer.start(newState.lockDelay.timeOut)
+                }
+            }
     }
 
-    fun drop() {
+    /**
+     * Drop the piece, starting a lock timer if the piece was gravity dropped
+     * @param computerDrop Whether the piece was gravity-dropped or not
+     */
+    fun drop(computerDrop: Boolean) {
         gameState.value.let { gameState ->
-            _gameState.value = gameState.drop()
+            val (newState, locked) = gameState.drop()
+            if (locked) {
+                if (computerDrop) {
+                if (!lockTimer.started) {
+                    lockTimer.start(gameState.lockDelay.timeOut)
+                }} else {
+                    gravityTimer.start(newState.dropTime(), true)
+                    _gameState.value = newState
+                }
+            } else {
+                lockTimer.stop()
+                _gameState.value = newState
+            }
         }
     }
 
