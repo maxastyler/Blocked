@@ -181,6 +181,17 @@ enum class Piece {
             }
         }
 
+    val offset: Int
+        get() = when (this) {
+            I -> 2
+            J -> 2
+            L -> 2
+            O -> 1
+            S -> 2
+            T -> 2
+            Z -> 2
+        }
+
     companion object {
         fun shuffled(): List<Piece> = listOf(I, J, L, O, S, T, Z).shuffled()
     }

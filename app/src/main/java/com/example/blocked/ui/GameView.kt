@@ -28,7 +28,6 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
     var offset by remember { mutableStateOf(Offset(0F, 0F)) }
     val dragAmount = 50F
     val dropAmount = 200F
-    val time = timedValue(spacing = 500L, { viewModel.drop() })
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.mode == GameState.Mode.GameOver) {
@@ -84,19 +83,6 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
         }
     }
 
-}
-
-@Composable
-fun timedValue(spacing: Long, func: () -> Unit): State<Long> {
-    var time = remember { mutableStateOf(0L) }
-    LaunchedEffect(spacing) {
-        while (true) {
-            delay(spacing)
-            time.value += spacing
-            func()
-        }
-    }
-    return time
 }
 
 @Composable
