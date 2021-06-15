@@ -1,7 +1,9 @@
 package com.example.blocked.game
 
-interface Block {
+import androidx.compose.ui.graphics.Color
 
+interface Block {
+    fun toColour(): Color
 }
 
 data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Block>) {

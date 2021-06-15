@@ -1,10 +1,31 @@
 package com.example.blocked.game
 
+import androidx.compose.ui.graphics.Color
 import kotlin.math.pow
 
-object MyBlock : Block {
-    override fun toString(): String {
-        return "B"
+enum class ColourBlock: Block {
+    I, J, L, S, O, Z, T;
+
+    override fun toColour(): Color = when (this) {
+        I -> Color.Red
+        J -> Color.Blue
+        L -> Color.Green
+        S -> Color(255, 192, 203)
+        O -> Color(255, 128, 0)
+        Z -> Color(150, 75, 0)
+        T -> Color(128, 0, 128)
+    }
+
+    companion object {
+        fun fromPiece(piece: Piece): ColourBlock = when (piece) {
+            Piece.I -> I
+            Piece.J -> J
+            Piece.L -> L
+            Piece.S -> S
+            Piece.O -> O
+            Piece.Z -> Z
+            Piece.T -> T
+        }
     }
 }
 
@@ -161,7 +182,7 @@ data class GameState(
 
     fun addPieceToBoard(): GameState {
         var newBoard =
-            board.addPiece(this.pieces.first(), this.position, this.rotation) { MyBlock }
+            board.addPiece(this.pieces.first(), this.position, this.rotation) { ColourBlock.fromPiece(it) }
         val (clearedLines, lineOffsets) = newBoard.getLineOffsets()
         newBoard = newBoard.applyRowChanges(clearedLines, lineOffsets)
         val isPieceAboveLimit = (0 until newBoard.width).any {

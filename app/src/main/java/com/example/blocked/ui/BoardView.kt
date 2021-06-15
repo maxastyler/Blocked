@@ -30,13 +30,13 @@ fun BoardView(gameState: GameState) {
             val p = it.toFloat() * blockLength
             drawLine(start = Offset(0F, p), end = Offset(innerWidth, p), color = Color.Black)
         }
-        board.blocks.forEach { (pos, _) ->
+        board.blocks.forEach { (pos, block) ->
             val xpos = blockLength * pos.x
             val ypos = innerHeight - blockLength * pos.y
             drawRect(
                 topLeft = Offset(xpos, ypos),
                 size = blockSize,
-                color = Color.Red
+                color = block.toColour()
             )
         }
         gameState.getShadow().forEach { pos ->
@@ -51,14 +51,15 @@ fun BoardView(gameState: GameState) {
 
         gameState.pieces.first().getCoordinates(gameState.rotation).forEach { nPos ->
             val pos = nPos + gameState.position
-            val xpos = blockLength * pos.x
-            val ypos = innerHeight - blockLength * pos.y
-            drawRect(
-                topLeft = Offset(xpos, ypos),
-                size = blockSize,
-                color = Color.Blue
-            )
+            if (pos.y < renderHeight) {
+                val xpos = blockLength * pos.x
+                val ypos = innerHeight - blockLength * pos.y
+                drawRect(
+                    topLeft = Offset(xpos, ypos),
+                    size = blockSize,
+                    color = ColourBlock.fromPiece(gameState.pieces.first()).toColour()
+                )
+            }
         }
-
     }
 }
