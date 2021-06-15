@@ -2,6 +2,7 @@
 buildscript {
     val compose_version by extra("1.0.0-beta08")
     val hilt_version by extra("2.37")
+    val room_version by extra("2.3.0")
     repositories {
         google()
         mavenCentral()

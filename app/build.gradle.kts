@@ -57,6 +57,12 @@ dependencies {
 
     implementation("androidx.navigation:navigation-compose:2.4.0-alpha02")
 
+    // room stuff
+    implementation("androidx.room:room-runtime:${rootProject.extra["room_version"]}")
+    annotationProcessor("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
+    kapt("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
+    implementation("androidx.room:room-ktx:${rootProject.extra["room_version"]}")
+
     implementation("androidx.core:core-ktx:1.5.0")
     implementation("androidx.appcompat:appcompat:1.3.0")
     implementation("com.google.android.material:material:1.3.0")
