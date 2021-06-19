@@ -1,8 +1,6 @@
 package com.example.blocked.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,23 +10,18 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.blocked.database.Score
 import com.example.blocked.game.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.toCollection
 import java.time.Instant
 import java.util.*
 
@@ -57,21 +50,57 @@ fun ScoreViewPreview() {
 fun GameOverView(viewModel: GameViewModel) {
     val listState = rememberLazyListState()
     val scores by viewModel.getScores().collectAsState(initial = listOf())
-    Column() {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = "GAME OVER", modifier = Modifier.align(Alignment.CenterVertically))
-            Button(
-                onClick = { viewModel.startGame() },
-                modifier = Modifier.align(Alignment.CenterVertically)
+    Card(modifier = Modifier.padding(20.dp), elevation = 3.dp) {
+        Column() {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(30.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Restart Game")
+                Text(text = "GAME OVER", modifier = Modifier.align(Alignment.CenterVertically))
+                Button(
+                    onClick = { viewModel.startGame() },
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                ) {
+                    Text("Restart Game")
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            LazyColumn(state = listState) {
+                items(scores) {
+                    ScoreView(score = it)
+                }
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
-        LazyColumn(state = listState) {
-            items(scores) {
-                ScoreView(score = it)
+    }
+}
+
+@Composable
+fun HeldPiece(piece: Piece?) {
+    Column() {
+        Text("Held:", modifier = Modifier.align(Alignment.CenterHorizontally))
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            piece?.let {
+                DrawPiece(piece = it)
             }
+        }
+    }
+}
+
+@Composable
+fun NextPieces(pieces: List<Piece>) {
+    Column() {
+        Text("Next:", modifier = Modifier.align(Alignment.CenterHorizontally))
+        Spacer(modifier = Modifier.height(10.dp))
+        pieces.forEach {
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) { DrawPiece(piece = it) }
         }
     }
 }
@@ -89,7 +118,9 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.mode == GameState.Mode.GameOver) {
-            GameOverView(viewModel = viewModel)
+            Box(modifier = Modifier.align(Alignment.Center)) {
+                GameOverView(viewModel = viewModel)
+            }
         } else {
             Box(modifier = Modifier
                 .fillMaxSize()
@@ -150,24 +181,31 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column() {
+                        Column(modifier = Modifier.align(Alignment.CenterVertically)) {
                             Text("Score: ${state.score.score}")
                             Text("Level: ${state.score.level}")
                         }
-                        Text("Held piece: ${state.held}")
                     }
                 }
-                Row() {
-                    Column(
+                Row(modifier = Modifier.padding(10.dp)) {
+                    Card(
                         modifier = Modifier
-                            .align(Alignment.Bottom)
-                            .padding(4.dp)
+                            .padding(5.dp)
+                            .align(Alignment.CenterVertically),
+                        elevation = 2.dp
                     ) {
-                        state.pieces.drop(1).take(4).forEach {
-                            PieceView(piece = it)
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Bottom)
+                                .fillMaxWidth(0.15F)
+                                .padding(4.dp)
+                        ) {
+                            HeldPiece(piece = state.held)
+                            Spacer(modifier = Modifier.height(20.dp))
+                            NextPieces(pieces = state.pieces.drop(1).take(4))
                         }
                     }
-                    BoardView(state)
+                    Box(modifier = Modifier.align(Alignment.CenterVertically)) { BoardView(state) }
                 }
             }
             if (state.mode == GameState.Mode.Paused) {
