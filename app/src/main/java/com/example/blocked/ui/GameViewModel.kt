@@ -128,7 +128,7 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    fun getScores(): Flow<List<Score>> = scoreRepository.getScores(10).flowOn(Dispatchers.IO)
+    fun getScores(): Flow<List<Score>> = scoreRepository.getScores(20).flowOn(Dispatchers.IO)
 
     fun submitScore() {
         viewModelScope.launch(Dispatchers.IO) {

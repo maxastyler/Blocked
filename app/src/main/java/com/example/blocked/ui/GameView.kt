@@ -27,16 +27,14 @@ import java.util.*
 
 @Composable
 fun ScoreView(score: Score) {
-    Card() {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(3.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Score: ${score.score}")
-            Text(score.date.toString())
-        }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(3.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text("Score: ${score.score}")
+        Text(score.date.toString())
     }
 }
 
@@ -53,7 +51,9 @@ fun GameOverView(viewModel: GameViewModel) {
     Card(modifier = Modifier.padding(20.dp), elevation = 3.dp) {
         Column() {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(30.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(30.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(text = "GAME OVER", modifier = Modifier.align(Alignment.CenterVertically))
@@ -65,6 +65,8 @@ fun GameOverView(viewModel: GameViewModel) {
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
+            Text(text = "High Scores:")
+            Spacer(modifier = Modifier.height(5.dp))
             LazyColumn(state = listState) {
                 items(scores) {
                     ScoreView(score = it)
@@ -202,7 +204,7 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                         ) {
                             HeldPiece(piece = state.held)
                             Spacer(modifier = Modifier.height(20.dp))
-                            NextPieces(pieces = state.pieces.drop(1).take(4))
+                            NextPieces(pieces = state.pieces.drop(1).take(6))
                         }
                     }
                     Box(modifier = Modifier.align(Alignment.CenterVertically)) { BoardView(state) }

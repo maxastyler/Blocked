@@ -17,6 +17,6 @@ interface ScoreDao {
     @Query("SELECT * FROM score")
     fun getAll(): Flow<List<Score>>
 
-    @Query("SELECT * FROM score ORDER BY date DESC LIMIT :number")
+    @Query("SELECT * FROM score ORDER BY score DESC, date DESC LIMIT :number")
     fun getN(number: Int): Flow<List<Score>>
 }
