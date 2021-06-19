@@ -16,10 +16,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class GameViewModel @Inject constructor(private val scoreRepository: ScoreRepository) : ViewModel() {
+class GameViewModel @Inject constructor(private val scoreRepository: ScoreRepository) :
+    ViewModel() {
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
     private val lockTimer = Timer(viewModelScope)
     private val gravityTimer = Timer(viewModelScope)
+    private val pauseTimer = Timer(viewModelScope)
     val gameState = _gameState.asStateFlow()
 
     init {
@@ -28,6 +30,9 @@ class GameViewModel @Inject constructor(private val scoreRepository: ScoreReposi
         }
         viewModelScope.launch {
             gravityTimer.events.collect { drop(true) }
+        }
+        viewModelScope.launch {
+            pauseTimer.events.collect { _gameState.value = _gameState.value.resume() }
         }
         startGame()
     }
@@ -70,19 +75,35 @@ class GameViewModel @Inject constructor(private val scoreRepository: ScoreReposi
      */
     fun drop(computerDrop: Boolean) {
         gameState.value.let { gameState ->
-            val (newState, locked) = gameState.drop()
-            if (locked) {
-                if (computerDrop) {
-                if (!lockTimer.started) {
-                    lockTimer.start(gameState.lockDelay.timeOut)
-                }} else {
-                    gravityTimer.start(newState.dropTime(), true)
-                    _gameState.value = newState
+            when (gameState.mode) {
+                GameState.Mode.Playing -> {
+                    val (newState, locked)
+                            = gameState.drop()
+                    if (locked) {
+                        if (computerDrop) {
+                            if (!lockTimer.started) {
+                                lockTimer.start(gameState.lockDelay.timeOut)
+                            }
+                        } else {
+                            gravityTimer.start(newState.dropTime(), true)
+                            _gameState.value = newState
+                        }
+                    } else {
+                        lockTimer.stop()
+                        _gameState.value = newState
+                    }
                 }
-            } else {
-                lockTimer.stop()
-                _gameState.value = newState
             }
+        }
+    }
+
+    fun pause() {
+        _gameState.value = _gameState.value.pause()
+    }
+
+    fun resume() {
+        if (!pauseTimer.started) {
+            pauseTimer.start(1000L)
         }
     }
 
