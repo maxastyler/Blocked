@@ -1,11 +1,8 @@
 package com.example.blocked.ui
 
-import android.os.VibrationEffect
 import android.os.Vibrator
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.blocked.database.Score
 import com.example.blocked.game.GameState
 import com.example.blocked.game.Rotation
@@ -20,7 +17,10 @@ import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
-class GameViewModel @Inject constructor(private val scoreRepository: ScoreRepository) :
+class GameViewModel @Inject constructor(
+    private val scoreRepository: ScoreRepository,
+    private val vibrator: Vibrator
+) :
     ViewModel() {
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
     private val lockTimer = Timer(viewModelScope)
