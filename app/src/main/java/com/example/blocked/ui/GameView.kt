@@ -33,8 +33,8 @@ fun ScoreView(score: Score) {
             .padding(3.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("Score: ${score.score}")
-        Text(score.date.toString())
+        Text("Score: ${score.score}", modifier = Modifier.align(Alignment.CenterVertically))
+        Text(score.date.toString(), modifier = Modifier.align(Alignment.CenterVertically))
     }
 }
 
@@ -48,6 +48,7 @@ fun ScoreViewPreview() {
 fun GameOverView(viewModel: GameViewModel) {
     val listState = rememberLazyListState()
     val scores by viewModel.getScores().collectAsState(initial = listOf())
+    val state by viewModel.gameState.collectAsState()
     Card(modifier = Modifier.padding(20.dp), elevation = 3.dp) {
         Column() {
             Row(
@@ -64,6 +65,11 @@ fun GameOverView(viewModel: GameViewModel) {
                     Text("Restart Game")
                 }
             }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text("Your score:")
+            Spacer(modifier = Modifier.height(4.dp))
+            ScoreView(score = Score(score = state.score.score, date = Date.from(Instant.now())))
+
             Spacer(modifier = Modifier.height(10.dp))
             Text(text = "High Scores:")
             Spacer(modifier = Modifier.height(5.dp))
@@ -116,7 +122,7 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
     var alreadyDropped by remember { mutableStateOf(false) }
     val dragAmount = 50F
     val dropAmount = 200F
-    val hardDropAmount = 150F
+    val hardDropAmount = 130F
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.mode == GameState.Mode.GameOver) {
@@ -186,6 +192,14 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                         Column(modifier = Modifier.align(Alignment.CenterVertically)) {
                             Text("Score: ${state.score.score}")
                             Text("Level: ${state.score.level}")
+                        }
+                        if (state.mode == GameState.Mode.Playing) {
+                            Button(
+                                onClick = { viewModel.pause() },
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            ) {
+                                Text("Pause")
+                            }
                         }
                     }
                 }

@@ -41,6 +41,7 @@ fun Main() {
     NavHost(navController = navController, startDestination = "home") {
         composable("home") { Home({ navController.navigate("game") }) }
         composable("game") {
+            navController.enableOnBackPressed(false)
             val model: GameViewModel = hiltViewModel()
             GameView(model)
         }

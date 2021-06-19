@@ -1,6 +1,7 @@
 package com.example.blocked.ui
 
 import android.os.Vibrator
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.blocked.database.Score
@@ -18,6 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val scoreRepository: ScoreRepository,
     private val vibrator: Vibrator
 ) :
@@ -36,7 +38,10 @@ class GameViewModel @Inject constructor(
             gravityTimer.events.collect { drop(true) }
         }
         viewModelScope.launch {
-            pauseTimer.events.collect { _gameState.value = _gameState.value.resume() }
+            pauseTimer.events.collect {
+                _gameState.value = _gameState.value.resume()
+                gravityTimer.start(_gameState.value.dropTime(), true)
+            }
         }
         startGame()
     }
@@ -128,7 +133,7 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    fun getScores(): Flow<List<Score>> = scoreRepository.getScores(20).flowOn(Dispatchers.IO)
+    fun getScores(): Flow<List<Score>> = scoreRepository.getScores(10).flowOn(Dispatchers.IO)
 
     fun submitScore() {
         viewModelScope.launch(Dispatchers.IO) {

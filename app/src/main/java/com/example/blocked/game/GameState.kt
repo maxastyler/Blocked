@@ -1,6 +1,7 @@
 package com.example.blocked.game
 
 import androidx.compose.ui.graphics.Color
+import androidx.versionedparcelable.VersionedParcelize
 import kotlin.math.pow
 
 enum class ColourBlock: Block {
