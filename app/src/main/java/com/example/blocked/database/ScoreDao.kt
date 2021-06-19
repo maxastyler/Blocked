@@ -9,11 +9,14 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ScoreDao {
     @Insert
-    fun insert(score: Score)
+    suspend fun insert(score: Score)
 
     @Delete
-    fun delete(score: Score)
+    suspend fun delete(score: Score)
 
     @Query("SELECT * FROM score")
-    fun getAll(): Flow<Score>
+    fun getAll(): Flow<List<Score>>
+
+    @Query("SELECT * FROM score ORDER BY date DESC LIMIT :number")
+    fun getN(number: Int): Flow<List<Score>>
 }

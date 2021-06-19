@@ -16,43 +16,99 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.blocked.database.Score
 import com.example.blocked.game.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toCollection
+import java.time.Instant
+import java.util.*
+
+@Composable
+fun ScoreView(score: Score) {
+    Card() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(3.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Score: ${score.score}")
+            Text(score.date.toString())
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ScoreViewPreview() {
+    ScoreView(score = Score(id = 1, score = 10, date = Date.from(Instant.now())))
+}
+
+@Composable
+fun GameOverView(viewModel: GameViewModel) {
+    val scores by viewModel.getScores().collectAsState(initial = listOf())
+    Column() {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(text = "GAME OVER", textAlign = TextAlign.Center)
+            Button(onClick = { viewModel.startGame() }) {
+                Text("Restart Game")
+            }
+        }
+        Column() {
+            scores.forEach {
+                ScoreView(score = it)
+            }
+        }
+    }
+}
 
 @Composable
 fun GameView(viewModel: GameViewModel = viewModel()) {
     val state by viewModel.gameState.collectAsState()
     var offset by remember { mutableStateOf(Offset(0F, 0F)) }
+    var dropping by remember { mutableStateOf(false) }
     val dragAmount = 50F
     val dropAmount = 200F
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.mode == GameState.Mode.GameOver) {
-            Column(modifier = Modifier.align(Alignment.Center)) {
-                Text(text = "GAME OVER")
-                Button(onClick = {viewModel.startGame()}) {
-                    Text("Restart Game")
-                }
-            }
+            GameOverView(viewModel = viewModel)
         } else {
             Box(modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
-                    detectDragGestures(onDragStart = { offset = Offset(0F, 0F) },
+                    detectDragGestures(onDragStart = {
+                        offset = Offset(0F, 0F)
+                        dropping = false
+                    },
+                        onDragEnd = { dropping = false },
                         onDrag = { change, amount ->
                             offset += amount
-                            while (offset.x > dragAmount) {
-                                offset = offset.copy(x = offset.x - dragAmount)
-                                viewModel.move(Vec2(1, 0))
-                            }
-                            while (offset.x < -dragAmount) {
-                                offset = offset.copy(x = offset.x + dragAmount)
-                                viewModel.move(Vec2(-1, 0))
+                            if (!dropping) {
+                                while (offset.x > dragAmount) {
+                                    offset = offset.copy(x = offset.x - dragAmount)
+                                    viewModel.move(Vec2(1, 0))
+                                }
+                                while (offset.x < -dragAmount) {
+                                    offset = offset.copy(x = offset.x + dragAmount)
+                                    viewModel.move(Vec2(-1, 0))
+                                }
+                            } else {
+                                val dragAmount = 3 * dragAmount
+                                while (offset.x > dragAmount) {
+                                    offset = offset.copy(x = offset.x - dragAmount)
+                                    viewModel.move(Vec2(1, 0))
+                                }
+                                while (offset.x < -dragAmount) {
+                                    offset = offset.copy(x = offset.x + dragAmount)
+                                    viewModel.move(Vec2(-1, 0))
+                                }
                             }
                             while (offset.y > dragAmount) {
+                                dropping = true
                                 offset = offset.copy(y = offset.y - dragAmount)
                                 viewModel.drop(false)
                             }
@@ -74,7 +130,10 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                 })
             Column() {
                 Card(elevation = 3.dp, modifier = Modifier.padding(10.dp)) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Column() {
                             Text("Score: ${state.score.score}")
                             Text("Level: ${state.score.level}")
@@ -83,9 +142,11 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                     }
                 }
                 Row() {
-                    Column(modifier = Modifier
-                        .align(Alignment.Bottom)
-                        .padding(4.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Bottom)
+                            .padding(4.dp)
+                    ) {
                         state.pieces.drop(1).take(4).forEach {
                             PieceView(piece = it)
                         }

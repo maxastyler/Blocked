@@ -6,15 +6,27 @@ import kotlin.math.pow
 enum class ColourBlock: Block {
     I, J, L, S, O, Z, T;
 
-    override fun toColour(): Color = when (this) {
-        I -> Color.Red
-        J -> Color.Blue
-        L -> Color.Green
-        S -> Color(255, 192, 203)
-        O -> Color(255, 128, 0)
-        Z -> Color(150, 75, 0)
-        T -> Color(128, 0, 128)
+    fun rachelColour(): Color = when (this) {
+        I -> Color(177,186,140)
+        J -> Color(200,189,242)
+        L -> Color(161,114,128)
+        S -> Color(86,107,101)
+        O -> Color(87,3,28)
+        Z -> Color(83,194,161)
+        T -> Color(49,4,209)
     }
+
+    fun natisColour(): Color = when (this) {
+        I -> Color(204, 65, 149)
+        J -> Color(116,116,117)
+        L -> Color(50,82,62)
+        S -> Color(102,22,70)
+        O -> Color(42,50,115)
+        Z -> Color(196,182,51)
+        T -> Color(134,235,174)
+    }
+
+    override fun toColour(): Color = rachelColour()
 
     companion object {
         fun fromPiece(piece: Piece): ColourBlock = when (piece) {

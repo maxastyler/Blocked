@@ -2,17 +2,18 @@ package com.example.blocked.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.blocked.database.Score
 import com.example.blocked.game.GameState
 import com.example.blocked.game.Rotation
 import com.example.blocked.game.Vec2
 import com.example.blocked.repository.ScoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -92,6 +93,9 @@ class GameViewModel @Inject constructor(private val scoreRepository: ScoreReposi
                         lockTimer.stop()
                         _gameState.value = newState
                     }
+                    if (newState.mode == GameState.Mode.GameOver) {
+                        submitScore()
+                    }
                 }
             }
         }
@@ -116,6 +120,19 @@ class GameViewModel @Inject constructor(private val scoreRepository: ScoreReposi
     fun hold() {
         gameState.value.let { gameState ->
             _gameState.value = gameState.holdPiece()
+        }
+    }
+
+    fun getScores(): Flow<List<Score>> = scoreRepository.getScores(10).flowOn(Dispatchers.IO)
+
+    fun submitScore() {
+        viewModelScope.launch(Dispatchers.IO) {
+            scoreRepository.addScore(
+                Score(
+                    score = gameState.value.score.score,
+                    date = Date.from(Instant.now())
+                )
+            )
         }
     }
 }
