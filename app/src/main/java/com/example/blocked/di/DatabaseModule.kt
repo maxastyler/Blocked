@@ -2,6 +2,7 @@ package com.example.blocked.di
 
 import android.content.Context
 import androidx.room.Room
+import com.example.blocked.database.SaveDatabase
 import com.example.blocked.database.ScoreDatabase
 import dagger.Module
 import dagger.Provides
@@ -18,6 +19,14 @@ object DatabaseModule {
     fun provideScoreDatabase(@ApplicationContext application: Context): ScoreDatabase {
         return Room.databaseBuilder(
             application, ScoreDatabase::class.java, "score_database"
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSaveDatabase(@ApplicationContext application: Context): SaveDatabase {
+        return Room.databaseBuilder(
+            application, SaveDatabase::class.java, "save_database"
         ).fallbackToDestructiveMigration().build()
     }
 }

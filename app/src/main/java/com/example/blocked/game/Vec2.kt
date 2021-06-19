@@ -35,4 +35,13 @@ data class Vec2(val x: Int, val y: Int) {
         Rotation.Half -> Vec2(-this.x, -this.y)
         Rotation.Left -> Vec2(-this.y, this.x)
     }
+
+    override fun toString(): String = "$x,$y"
+
+    companion object {
+        fun fromString(s: String): Vec2 {
+            val split = s.split(",")
+            return Vec2(split[0].toInt(), split[1].toInt())
+        }
+    }
 }

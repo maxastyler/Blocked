@@ -6,7 +6,7 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import java.util.*
 
-class Converters {
+class ScoreConverters {
     @TypeConverter
     fun fromTimestamp(value: Long?): Date? {
         return value?.let { Date(it) }
@@ -19,7 +19,7 @@ class Converters {
 }
 
 @Database(entities = [Score::class], version = 1, exportSchema = true)
-@TypeConverters(Converters::class)
+@TypeConverters(ScoreConverters::class)
 abstract class ScoreDatabase: RoomDatabase() {
 
     abstract fun scoreDao(): ScoreDao

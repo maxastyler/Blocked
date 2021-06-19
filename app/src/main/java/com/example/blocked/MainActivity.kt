@@ -36,6 +36,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Main() {
+    GameView()
+}
+
+@Composable
+fun NavigationMain() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {

@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 interface Block {
     fun toColour(): Color
+    override fun toString(): String
 }
 
 data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Block>) {
@@ -34,8 +35,8 @@ data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Block>) 
         rotation: Rotation,
         blockFun: (Piece) -> Block
     ): Board = this.copy(blocks = this.blocks + (piece.getCoordinates(rotation)
-            .map { coord -> (coord + position) to blockFun(piece) }
-            .toMap()))
+        .map { coord -> (coord + position) to blockFun(piece) }
+        .toMap()))
 
     /**
      * Get the offsets to move a line down with

@@ -115,7 +115,10 @@ fun NextPieces(pieces: List<Piece>) {
 
 @Composable
 fun GameView(viewModel: GameViewModel = viewModel()) {
-    RunFunctionOnPauseAndResume(onPause = { viewModel.pause() }, onResume = { })
+    RunFunctionOnPauseAndResume(onPause = {
+        viewModel.pause()
+        viewModel.saveState()
+    }, onResume = { })
     val state by viewModel.gameState.collectAsState()
     var offset by remember { mutableStateOf(Offset(0F, 0F)) }
     var dropping by remember { mutableStateOf(false) }
@@ -225,16 +228,27 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                 }
             }
             if (state.mode == GameState.Mode.Paused) {
-                Button(
-                    onClick = { viewModel.resume() },
-                    modifier = Modifier.align(Alignment.Center)
-                ) {
-                    Text("Resume")
+                Box(modifier = Modifier.align(Alignment.Center)) {
+                    PauseMenu(onResume = { viewModel.resume() },
+                        onNewGame = { viewModel.restart() })
                 }
             }
         }
     }
 
+}
+
+@Composable
+fun PauseMenu(onResume: () -> Unit, onNewGame: () -> Unit) {
+    Column() {
+        Button(onClick = onResume, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Text("Resume")
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(onClick = onNewGame, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Text("New Game")
+        }
+    }
 }
 
 @Composable

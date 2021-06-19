@@ -1,33 +1,35 @@
 package com.example.blocked.ui
 
-import android.os.Vibrator
-import androidx.lifecycle.SavedStateHandle
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.blocked.database.Score
 import com.example.blocked.game.GameState
 import com.example.blocked.game.Rotation
 import com.example.blocked.game.Vec2
+import com.example.blocked.repository.SaveRepository
 import com.example.blocked.repository.ScoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import java.time.Instant
 import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
     private val scoreRepository: ScoreRepository,
-    private val vibrator: Vibrator
+    private val saveRepository: SaveRepository,
 ) :
     ViewModel() {
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
     private val lockTimer = Timer(viewModelScope)
     private val gravityTimer = Timer(viewModelScope)
     private val pauseTimer = Timer(viewModelScope)
+    private val saveScope = CoroutineScope(viewModelScope.coroutineContext)
     val gameState = _gameState.asStateFlow()
 
     init {
@@ -44,11 +46,24 @@ class GameViewModel @Inject constructor(
             }
         }
         startGame()
+        viewModelScope.launch(context = Dispatchers.IO) {
+            val state = saveRepository.getState()
+            Log.d("Save", state.toString())
+            state?.run {
+                _gameState.value = this
+            }
+        }
+        pause()
     }
 
     fun startGame(width: Int = 10, height: Int = 30) {
+        lockTimer.stop()
         _gameState.value = GameState(width = width, height = height).resetPosition()
         gravityTimer.start(_gameState.value.dropTime(), true)
+    }
+
+    fun restart() {
+        startGame(gameState.value.board.width, gameState.value.board.height)
     }
 
     fun rotate(rotation: Rotation) {
@@ -143,6 +158,15 @@ class GameViewModel @Inject constructor(
                     date = Date.from(Instant.now())
                 )
             )
+        }
+    }
+
+    fun saveState() {
+        saveScope.launch(Dispatchers.IO) {
+            supervisorScope {
+                saveRepository.saveState(gameState.value)
+                Log.d("Save", "SAVED :)")
+            }
         }
     }
 }

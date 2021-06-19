@@ -1,11 +1,30 @@
 package com.example.blocked.game
 
 import androidx.compose.ui.graphics.Color
-import androidx.versionedparcelable.VersionedParcelize
 import kotlin.math.pow
+
+fun colourBlockfromString(s: String): ColourBlock = when (s) {
+    "I" -> ColourBlock.I
+    "J" -> ColourBlock.J
+    "L" -> ColourBlock.L
+    "S" -> ColourBlock.S
+    "O" -> ColourBlock.O
+    "Z" -> ColourBlock.Z
+    else -> ColourBlock.T
+}
 
 enum class ColourBlock: Block {
     I, J, L, S, O, Z, T;
+
+    override fun toString(): String = when (this) {
+        I -> "I"
+        J -> "J"
+        L -> "L"
+        S -> "S"
+        O -> "O"
+        Z -> "Z"
+        T -> "T"
+    }
 
     fun rachelColour(): Color = when (this) {
         I -> Color(177,186,140)
@@ -30,6 +49,7 @@ enum class ColourBlock: Block {
     override fun toColour(): Color = rachelColour()
 
     companion object {
+
         fun fromPiece(piece: Piece): ColourBlock = when (piece) {
             Piece.I -> I
             Piece.J -> J

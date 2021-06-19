@@ -194,5 +194,16 @@ enum class Piece {
 
     companion object {
         fun shuffled(): List<Piece> = listOf(I, J, L, O, S, T, Z).shuffled()
+
+        fun fromString(s: String): Piece = when (s) {
+            "I" -> I
+            "J" -> J
+            "L" -> L
+            "S" -> S
+            "O" -> O
+            "Z" -> Z
+            else -> T
+        }
+
     }
 }
