@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -33,20 +34,13 @@ fun BoardView(gameState: GameState) {
         board.blocks.forEach { (pos, block) ->
             val xpos = blockLength * pos.x
             val ypos = innerHeight - blockLength * pos.y
-            drawRect(
-                topLeft = Offset(xpos, ypos),
-                size = blockSize,
-                color = block.toColour()
-            )
+            drawBlock(Offset(xpos, ypos), blockSize, block.toColour())
         }
+
         gameState.getShadow().forEach { pos ->
             val xpos = blockLength * pos.x
             val ypos = innerHeight - blockLength * pos.y
-            drawRect(
-                topLeft = Offset(xpos, ypos),
-                size = blockSize,
-                color = Color.LightGray
-            )
+            drawBlock(Offset(xpos, ypos), blockSize, Color.LightGray)
         }
 
         gameState.pieces.first().getCoordinates(gameState.rotation).forEach { nPos ->
@@ -54,12 +48,16 @@ fun BoardView(gameState: GameState) {
             if (pos.y < renderHeight) {
                 val xpos = blockLength * pos.x
                 val ypos = innerHeight - blockLength * pos.y
-                drawRect(
-                    topLeft = Offset(xpos, ypos),
-                    size = blockSize,
-                    color = ColourBlock.fromPiece(gameState.pieces.first()).toColour()
+                drawBlock(
+                    Offset(xpos, ypos),
+                    blockSize,
+                    ColourBlock.fromPiece(gameState.pieces.first()).toColour()
                 )
             }
         }
     }
+}
+
+fun DrawScope.drawBlock(offset: Offset, size: Size, color: Color) {
+    drawRect(topLeft = offset, size = size, color = color)
 }
