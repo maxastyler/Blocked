@@ -82,8 +82,10 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
     val state by viewModel.gameState.collectAsState()
     var offset by remember { mutableStateOf(Offset(0F, 0F)) }
     var dropping by remember { mutableStateOf(false) }
+    var alreadyDropped by remember { mutableStateOf(false) }
     val dragAmount = 50F
     val dropAmount = 200F
+    val hardDropAmount = 150F
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.mode == GameState.Mode.GameOver) {
@@ -95,39 +97,37 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                     detectDragGestures(onDragStart = {
                         offset = Offset(0F, 0F)
                         dropping = false
+                        alreadyDropped = false
                     },
-                        onDragEnd = { dropping = false },
                         onDrag = { change, amount ->
                             if (state.mode == GameState.Mode.Playing) {
                                 offset += amount
-                                if (!dropping) {
-                                    while (offset.x > dragAmount) {
-                                        offset = offset.copy(x = offset.x - dragAmount)
-                                        viewModel.move(Vec2(1, 0))
-                                    }
-                                    while (offset.x < -dragAmount) {
-                                        offset = offset.copy(x = offset.x + dragAmount)
-                                        viewModel.move(Vec2(-1, 0))
+                                if (amount.y > hardDropAmount) {
+                                    if (!alreadyDropped) {
+                                        viewModel.hardDrop()
+                                        alreadyDropped = true
                                     }
                                 } else {
-                                    val dragAmount = 3 * dragAmount
-                                    while (offset.x > dragAmount) {
-                                        offset = offset.copy(x = offset.x - dragAmount)
+                                    val xDragAmount = if (dropping) 3 * dragAmount else dragAmount
+                                    while (offset.x > xDragAmount) {
+                                        offset = offset.copy(x = offset.x - xDragAmount)
                                         viewModel.move(Vec2(1, 0))
                                     }
-                                    while (offset.x < -dragAmount) {
-                                        offset = offset.copy(x = offset.x + dragAmount)
+                                    while (offset.x < -xDragAmount) {
+                                        offset = offset.copy(x = offset.x + xDragAmount)
                                         viewModel.move(Vec2(-1, 0))
                                     }
-                                }
-                                while (offset.y > dragAmount) {
-                                    dropping = true
-                                    offset = offset.copy(y = offset.y - dragAmount)
-                                    viewModel.drop(false)
-                                }
-                                if (offset.y < -dropAmount) {
-                                    viewModel.hold()
-                                    offset = offset.copy(y = 0F)
+                                    if (!alreadyDropped) {
+                                        while (offset.y > dragAmount) {
+                                            dropping = true
+                                            offset = offset.copy(y = offset.y - dragAmount)
+                                            viewModel.drop(false)
+                                        }
+                                        if (offset.y < -dropAmount) {
+                                            viewModel.hold()
+                                            offset = offset.copy(y = 0F)
+                                        }
+                                    }
                                 }
                             }
                         }
