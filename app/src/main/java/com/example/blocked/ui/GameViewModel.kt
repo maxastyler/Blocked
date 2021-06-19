@@ -102,12 +102,14 @@ class GameViewModel @Inject constructor(private val scoreRepository: ScoreReposi
     }
 
     fun pause() {
-        _gameState.value = _gameState.value.pause()
+        if (gameState.value.mode == GameState.Mode.Playing) {
+            _gameState.value = _gameState.value.pause()
+        }
     }
 
     fun resume() {
-        if (!pauseTimer.started) {
-            pauseTimer.start(1000L)
+        if (gameState.value.mode == GameState.Mode.Paused && !pauseTimer.started) {
+            pauseTimer.start(0L)
         }
     }
 
