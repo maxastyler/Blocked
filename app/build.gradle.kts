@@ -37,14 +37,12 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
-        useIR = true
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = rootProject.extra["compose_version"] as String
-        kotlinCompilerVersion = "1.4.32"
     }
 }
 
@@ -52,10 +50,12 @@ dependencies {
 
     // hilt stuff
     implementation("com.google.dagger:hilt-android:${rootProject.extra["hilt_version"]}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${rootProject.extra["lifecycle_version"]}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07")
     kapt("com.google.dagger:hilt-android-compiler:${rootProject.extra["hilt_version"]}")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0-alpha02")
 
-    implementation("androidx.navigation:navigation-compose:2.4.0-alpha02")
+    implementation("androidx.navigation:navigation-compose:2.4.0-alpha03")
 
     // room stuff
     implementation("androidx.room:room-runtime:${rootProject.extra["room_version"]}")
@@ -69,9 +69,9 @@ dependencies {
     implementation("androidx.compose.ui:ui:${rootProject.extra["compose_version"]}")
     implementation("androidx.compose.material:material:${rootProject.extra["compose_version"]}")
     implementation("androidx.compose.ui:ui-tooling:${rootProject.extra["compose_version"]}")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation("androidx.activity:activity-compose:1.3.0-beta01")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${rootProject.extra["compose_version"]}")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:${rootProject.extra["lifecycle_version"]}")
+    implementation("androidx.activity:activity-compose:1.3.0-beta02")
+
     testImplementation("junit:junit:4.+")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")

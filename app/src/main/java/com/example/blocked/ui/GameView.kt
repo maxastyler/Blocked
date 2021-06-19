@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.blocked.game.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.toCollection
 
 @Composable
 fun GameView(viewModel: GameViewModel = viewModel()) {
@@ -82,7 +83,9 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                     }
                 }
                 Row() {
-                    Column(modifier = Modifier.align(Alignment.Bottom).padding(4.dp)) {
+                    Column(modifier = Modifier
+                        .align(Alignment.Bottom)
+                        .padding(4.dp)) {
                         state.pieces.drop(1).take(4).forEach {
                             PieceView(piece = it)
                         }

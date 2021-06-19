@@ -2,10 +2,13 @@ package com.example.blocked.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.blocked.database.Score
 import com.example.blocked.game.GameState
 import com.example.blocked.game.Rotation
 import com.example.blocked.game.Vec2
+import com.example.blocked.repository.ScoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
@@ -13,7 +16,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class GameViewModel @Inject constructor() : ViewModel() {
+class GameViewModel @Inject constructor(private val scoreRepository: ScoreRepository) : ViewModel() {
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
     private val lockTimer = Timer(viewModelScope)
     private val gravityTimer = Timer(viewModelScope)
