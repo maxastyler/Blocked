@@ -1,9 +1,6 @@
 package com.example.blocked.database
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 
 @Dao
 interface SaveDao {
@@ -12,4 +9,7 @@ interface SaveDao {
 
     @Query("SELECT * FROM save WHERE id=0 LIMIT 1")
     suspend fun get(): Save?
+
+    @Query("DELETE FROM save")
+    suspend fun delete()
 }

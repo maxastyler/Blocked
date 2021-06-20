@@ -117,7 +117,7 @@ fun NextPieces(pieces: List<Piece>) {
 fun GameView(viewModel: GameViewModel = viewModel()) {
     RunFunctionOnPauseAndResume(onPause = {
         viewModel.pause()
-        viewModel.saveState()
+        if (viewModel.gameState.value.mode != GameState.Mode.GameOver) viewModel.saveState()
     }, onResume = { })
     val state by viewModel.gameState.collectAsState()
     var offset by remember { mutableStateOf(Offset(0F, 0F)) }

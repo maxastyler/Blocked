@@ -41,16 +41,19 @@ class GameViewModel @Inject constructor(
         }
         viewModelScope.launch {
             pauseTimer.events.collect {
-                _gameState.value = _gameState.value.resume()
                 gravityTimer.start(_gameState.value.dropTime(), true)
+                _gameState.value = _gameState.value.resume()
             }
         }
         startGame()
         viewModelScope.launch(context = Dispatchers.IO) {
-            val state = saveRepository.getState()
-            Log.d("Save", state.toString())
-            state?.run {
-                _gameState.value = this
+            try {
+                val state = saveRepository.getState()
+                state?.run {
+                    _gameState.value = this.pause()
+                }
+            } catch (e: NumberFormatException) {
+                saveRepository.clear()
             }
         }
         pause()
@@ -118,6 +121,7 @@ class GameViewModel @Inject constructor(
                     }
                     if (newState.mode == GameState.Mode.GameOver) {
                         submitScore()
+                        clearSave()
                     }
                 }
             }
@@ -165,7 +169,14 @@ class GameViewModel @Inject constructor(
         saveScope.launch(Dispatchers.IO) {
             supervisorScope {
                 saveRepository.saveState(gameState.value)
-                Log.d("Save", "SAVED :)")
+            }
+        }
+    }
+
+    fun clearSave() {
+        saveScope.launch(Dispatchers.IO) {
+            supervisorScope {
+                saveRepository.clear()
             }
         }
     }

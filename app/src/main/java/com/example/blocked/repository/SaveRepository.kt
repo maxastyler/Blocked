@@ -6,6 +6,10 @@ import com.example.blocked.game.GameState
 import javax.inject.Inject
 
 class SaveRepository @Inject constructor(private val saveDatabase: SaveDatabase) {
+    suspend fun clear() {
+        saveDatabase.saveDao().delete()
+    }
+
     suspend fun saveState(state: GameState) {
         val save = Save(
             width = state.board.width,

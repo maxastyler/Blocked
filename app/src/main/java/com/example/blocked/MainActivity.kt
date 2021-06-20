@@ -38,30 +38,3 @@ class MainActivity : ComponentActivity() {
 fun Main() {
     GameView()
 }
-
-@Composable
-fun NavigationMain() {
-    val navController = rememberNavController()
-
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") { Home({ navController.navigate("game") }) }
-        composable("game") {
-            navController.enableOnBackPressed(false)
-            val model: GameViewModel = hiltViewModel()
-            GameView(model)
-        }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    BlockedTheme {
-        Greeting("Android")
-    }
-}
