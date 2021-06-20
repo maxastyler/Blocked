@@ -11,11 +11,8 @@ import com.maxtyler.blocked.game.Vec2
 import com.maxtyler.blocked.repository.SaveRepository
 import com.maxtyler.blocked.repository.ScoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import java.time.Instant
 import java.util.*
 import javax.inject.Inject
@@ -32,7 +29,9 @@ class GameViewModel @Inject constructor(
     private val gravityTimer = Timer(viewModelScope)
     private val pauseTimer = Timer(viewModelScope)
     private val saveScope = CoroutineScope(viewModelScope.coroutineContext)
-    private val vibrationEffect = VibrationEffect.createOneShot(10L, 150)
+    private var vibrationJob: Job? = null
+    private val moveVibrationEffect = VibrationEffect.createOneShot(10L, 30)
+    private val dropVibrationEffect = VibrationEffect.createOneShot(100L, 200)
     val gameState = _gameState.asStateFlow()
 
     init {
@@ -91,6 +90,7 @@ class GameViewModel @Inject constructor(
     fun move(direction: Vec2) {
         gameState.value.tryPosition(gameState.value.position + direction)
             ?.run {
+                vibrate(moveVibrationEffect)
                 val newState = this.useLockMovement()
                 _gameState.value = newState
 
@@ -110,6 +110,10 @@ class GameViewModel @Inject constructor(
                 GameState.Mode.Playing -> {
                     val (newState, locked)
                             = gameState.drop()
+
+                    // do the drop vibration if it was dropped by a player
+                    if (!computerDrop) vibrate(moveVibrationEffect)
+
                     if (locked) {
                         if (computerDrop) {
                             if (!lockTimer.started) {
@@ -147,11 +151,13 @@ class GameViewModel @Inject constructor(
     fun hardDrop() {
         gameState.value.let { gameState ->
             _gameState.value = gameState.hardDrop()
+            vibrate(dropVibrationEffect)
         }
     }
 
     fun hold() {
         gameState.value.let { gameState ->
+            if (!gameState.holdUsed) vibrate(moveVibrationEffect)
             _gameState.value = gameState.holdPiece()
         }
     }
@@ -185,10 +191,11 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    fun vibrate() {
-        viewModelScope.launch(Dispatchers.Default) {
-            vibrator.cancel()
-            vibrator.vibrate(vibrationEffect)
+    fun vibrate(effect: VibrationEffect) {
+        if (!(vibrationJob?.isActive ?: false)) {
+            vibrationJob = viewModelScope.launch(Dispatchers.Default) {
+                vibrator.vibrate(effect)
+            }
         }
     }
 }
