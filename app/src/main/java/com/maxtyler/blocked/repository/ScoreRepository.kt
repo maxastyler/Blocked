@@ -1,7 +1,7 @@
 package com.maxtyler.blocked.repository
 
-import com.example.blocked.database.Score
-import com.example.blocked.database.ScoreDatabase
+import com.maxtyler.blocked.database.Score
+import com.maxtyler.blocked.database.ScoreDatabase
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

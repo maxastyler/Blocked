@@ -1,8 +1,8 @@
 package com.maxtyler.blocked.repository
 
-import com.example.blocked.database.Save
-import com.example.blocked.database.SaveDatabase
-import com.example.blocked.game.GameState
+import com.maxtyler.blocked.database.Save
+import com.maxtyler.blocked.database.SaveDatabase
+import com.maxtyler.blocked.game.GameState
 import javax.inject.Inject
 
 class SaveRepository @Inject constructor(private val saveDatabase: SaveDatabase) {
@@ -28,7 +28,7 @@ class SaveRepository @Inject constructor(private val saveDatabase: SaveDatabase)
         saveDatabase.saveDao().insert(save)
     }
 
-    suspend fun getState(): GameState? = saveDatabase.saveDao().get().let {
+    suspend fun getState(): GameState? = saveDatabase.saveDao().get()?.let {
         val state = GameState(width = it.width, height = it.height)
         state.copy(
             board = state.board.copy(blocks = it.board),

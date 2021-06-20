@@ -2,12 +2,12 @@ package com.maxtyler.blocked.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.blocked.database.Score
-import com.example.blocked.game.GameState
-import com.example.blocked.game.Rotation
-import com.example.blocked.game.Vec2
-import com.example.blocked.repository.SaveRepository
-import com.example.blocked.repository.ScoreRepository
+import com.maxtyler.blocked.database.Score
+import com.maxtyler.blocked.game.GameState
+import com.maxtyler.blocked.game.Rotation
+import com.maxtyler.blocked.game.Vec2
+import com.maxtyler.blocked.repository.SaveRepository
+import com.maxtyler.blocked.repository.ScoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +48,7 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch(context = Dispatchers.IO) {
             try {
                 val state = saveRepository.getState()
-                state.run {
+                state?.run {
                     _gameState.value = this.pause()
                 }
             } catch (e: NumberFormatException) {
@@ -86,7 +86,7 @@ class GameViewModel @Inject constructor(
 
     fun move(direction: Vec2) {
         gameState.value.tryPosition(gameState.value.position + direction)
-            .run {
+            ?.run {
                 val newState = this.useLockMovement()
                 _gameState.value = newState
                 if (lockTimer.started) {

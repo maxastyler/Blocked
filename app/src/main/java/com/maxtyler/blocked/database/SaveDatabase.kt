@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import com.example.blocked.game.*
+import com.maxtyler.blocked.game.*
 import java.util.*
 
 class SaveConverters {
@@ -38,19 +38,19 @@ class SaveConverters {
     }
 
     @TypeConverter
-    fun rotationToInt(rotation: Rotation?): Int? = rotation.let { it.toInt() }
+    fun rotationToInt(rotation: Rotation?): Int? = rotation?.toInt()
 
     @TypeConverter
     fun intToRotation(value: Int?): Rotation? = value?.let { Rotation.fromInt(it) }
 
     @TypeConverter
-    fun pieceToString(piece: Piece?): String? = piece.let { it.toString() }
+    fun pieceToString(piece: Piece?): String? = piece?.toString()
 
     @TypeConverter
     fun stringToPiece(value: String?): Piece? = value?.let { Piece.fromString(it) }
 
     @TypeConverter
-    fun vecToString(v: Vec2?): String? = v.let { it.toString() }
+    fun vecToString(v: Vec2?): String? = v?.toString()
 
     @TypeConverter
     fun stringToVec(s: String?): Vec2? = s?.let { Vec2.fromString(it) }

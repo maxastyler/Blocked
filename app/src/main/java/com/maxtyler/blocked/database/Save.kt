@@ -2,10 +2,10 @@ package com.maxtyler.blocked.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.blocked.game.Block
-import com.example.blocked.game.Piece
-import com.example.blocked.game.Rotation
-import com.example.blocked.game.Vec2
+import com.maxtyler.blocked.game.Block
+import com.maxtyler.blocked.game.Piece
+import com.maxtyler.blocked.game.Rotation
+import com.maxtyler.blocked.game.Vec2
 
 @Entity
 data class Save(

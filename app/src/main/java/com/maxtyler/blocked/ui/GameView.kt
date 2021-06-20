@@ -4,6 +4,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -19,8 +20,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.blocked.database.Score
-import com.example.blocked.game.*
+import com.example.blocked.game.BoardView
+import com.example.blocked.game.DrawPiece
+import com.maxtyler.blocked.database.Score
+import com.maxtyler.blocked.game.GameState
+import com.maxtyler.blocked.game.Piece
+import com.maxtyler.blocked.game.Rotation
+import com.maxtyler.blocked.game.Vec2
 import java.time.Instant
 import java.util.*
 
@@ -90,7 +96,7 @@ fun HeldPiece(piece: Piece?) {
                 .size(50.dp)
                 .align(Alignment.CenterHorizontally)
         ) {
-            piece.let {
+            piece?.let {
                 DrawPiece(piece = it)
             }
         }
