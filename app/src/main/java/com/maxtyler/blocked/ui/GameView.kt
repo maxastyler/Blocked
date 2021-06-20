@@ -46,7 +46,7 @@ fun ScoreView(score: Score) {
 @Preview
 @Composable
 fun ScoreViewPreview() {
-    ScoreView(score = Score(id = 1, score = 10, date = Date.from(Instant.now())))
+    ScoreView(score = Score(score = 10, date = Date.from(Instant.now())))
 }
 
 @Composable

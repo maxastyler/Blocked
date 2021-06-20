@@ -1,5 +1,7 @@
 package com.maxtyler.blocked.ui
 
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maxtyler.blocked.database.Score
@@ -22,6 +24,7 @@ import javax.inject.Inject
 class GameViewModel @Inject constructor(
     private val scoreRepository: ScoreRepository,
     private val saveRepository: SaveRepository,
+    private val vibrator: Vibrator,
 ) :
     ViewModel() {
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
@@ -29,6 +32,7 @@ class GameViewModel @Inject constructor(
     private val gravityTimer = Timer(viewModelScope)
     private val pauseTimer = Timer(viewModelScope)
     private val saveScope = CoroutineScope(viewModelScope.coroutineContext)
+    private val vibrationEffect = VibrationEffect.createOneShot(10L, 150)
     val gameState = _gameState.asStateFlow()
 
     init {
@@ -89,6 +93,7 @@ class GameViewModel @Inject constructor(
             ?.run {
                 val newState = this.useLockMovement()
                 _gameState.value = newState
+
                 if (lockTimer.started) {
                     lockTimer.start(newState.lockDelay.timeOut)
                 }
@@ -177,6 +182,13 @@ class GameViewModel @Inject constructor(
             supervisorScope {
                 saveRepository.clear()
             }
+        }
+    }
+
+    fun vibrate() {
+        viewModelScope.launch(Dispatchers.Default) {
+            vibrator.cancel()
+            vibrator.vibrate(vibrationEffect)
         }
     }
 }

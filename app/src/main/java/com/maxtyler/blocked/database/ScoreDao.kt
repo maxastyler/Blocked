@@ -3,12 +3,13 @@ package com.maxtyler.blocked.database
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy.REPLACE
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ScoreDao {
-    @Insert
+    @Insert(onConflict = REPLACE)
     suspend fun insert(score: Score)
 
     @Delete
