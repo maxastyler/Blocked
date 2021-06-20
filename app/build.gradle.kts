@@ -11,7 +11,7 @@ android {
     buildToolsVersion = "30.0.3"
 
     defaultConfig {
-        applicationId = "com.example.blocked"
+        applicationId = "com.maxtyler.blocked"
         minSdk = 26
         targetSdk = 30
         versionCode = 1
