@@ -30,7 +30,6 @@ class SaveConverters {
     fun stringToBoard(value: String?): Map<Vec2, Block>? {
         return value?.let {
             it.split("~").map {
-                Log.d("Save", it)
                 val split = it.split(";")
                 Vec2.fromString(split[0]) to ColourBlock.fromPiece(Piece.fromString(split[1]))
             }.toMap()
