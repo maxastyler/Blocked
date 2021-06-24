@@ -39,7 +39,7 @@ fun BoardView(gameState: GameState) {
         board.blocks.forEach { (pos, block) ->
             val xpos = blockLength * pos.x
             val ypos = innerHeight - blockLength * pos.y
-            drawBlock(Offset(xpos, ypos), blockSize, block.toColour())
+            drawBlock(Offset(xpos, ypos), blockSize, ColourBlock.toColour(block))
         }
 
         gameState.getShadow().forEach { pos ->
@@ -56,7 +56,7 @@ fun BoardView(gameState: GameState) {
                 drawBlock(
                     Offset(xpos, ypos),
                     blockSize,
-                    ColourBlock.fromPiece(gameState.pieces.first()).toColour()
+                    ColourBlock.toColour(gameState.pieces.first())
                 )
             }
         }
@@ -85,7 +85,7 @@ fun DrawPiece(piece: Piece) {
                 if (coords.contains(Vec2(x + minX, y + minY))) {
                     val offset = Offset(x * blockX, (3 - y) * blockY)
                     drawRect(
-                        color = ColourBlock.fromPiece(piece).toColour(),
+                        color = ColourBlock.toColour(piece),
                         topLeft = offset,
                         size = Size(blockX, -blockY)
                     )

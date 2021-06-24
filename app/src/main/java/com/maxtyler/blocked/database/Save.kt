@@ -2,7 +2,6 @@ package com.maxtyler.blocked.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.maxtyler.blocked.game.Block
 import com.maxtyler.blocked.game.Piece
 import com.maxtyler.blocked.game.Rotation
 import com.maxtyler.blocked.game.Vec2
