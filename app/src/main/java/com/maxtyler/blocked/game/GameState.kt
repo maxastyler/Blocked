@@ -28,60 +28,26 @@ object ColourBlock {
 }
 
 data class GameState(
-    val position: Vec2,
-    val rotation: Rotation,
+    val pieceState: PieceState,
     val board: Board,
     val pieces: List<Piece>,
     val held: Piece?,
     val mode: Mode,
-    val lockDelay: LockDelay,
+    val lockDelay: LockState,
     val settings: GameSettings,
     val score: Score = Score(),
     val holdUsed: Boolean = false,
 ) {
 
-    data class Score(
-        val score: Int = 0,
-        val lastClearWasTetris: Boolean = false,
-        val level: Int = 1,
-        val levelStartScore: Int = 0,
+    constructor(width: Int, height: Int) : this(
+        pieceState = PieceState(Piece.I, Vec2(0, 0), Rotation.None),
+        board = Board(width = width, height = height, blocks = mapOf()),
+        pieces = Piece.shuffled(),
+        held = null,
+        mode = Mode.Playing,
+        lockDelay = LockState(15, 15),
+        settings = GameSettings(22)
     ) {
-        fun checkLevelUp(): Score =
-            if (score - levelStartScore >= 5 * level * level) {
-                this.copy(
-                    level = level + 1,
-                    levelStartScore = score
-                )
-            } else this
-
-    }
-
-    data class GameSettings(
-        val startingHeight: Int,
-        val gameOverHeight: Int,
-    ) {
-        constructor(startingHeight: Int) : this(
-            startingHeight = startingHeight,
-            gameOverHeight = startingHeight
-        )
-    }
-
-    data class LockDelay(
-        val rotationsLeft: Int,
-        val movesLeft: Int,
-        val rotationLimit: Int,
-        val moveLimit: Int,
-        val timeOut: Long = 500L,
-    ) {
-        constructor(rotationLimit: Int, moveLimit: Int) : this(
-            rotationsLeft = rotationLimit,
-            movesLeft = moveLimit,
-            rotationLimit = rotationLimit,
-            moveLimit = moveLimit
-        )
-
-        fun reset(): LockDelay =
-            this.copy(rotationsLeft = this.rotationLimit, movesLeft = this.moveLimit)
     }
 
     enum class Mode {
@@ -90,33 +56,25 @@ data class GameState(
         GameOver,
     }
 
-    constructor(width: Int, height: Int) : this(
-        position = Vec2(width / 2, height),
-        rotation = Rotation.None,
-        board = Board(width = width, height = height, blocks = mapOf()),
-        pieces = Piece.shuffled(),
-        held = null,
-        mode = Mode.Playing,
-        lockDelay = LockDelay(15, 15),
-        settings = GameSettings(22)
-    )
-
     /**
      * To to put the piece in the new position
      */
-    fun tryPosition(newPosition: Vec2): GameState? =
-        if (board.isValidPosition(PieceState(this.pieces.first(), newPosition, this.rotation))) {
-            this.copy(position = newPosition)
+    fun tryPosition(newPosition: Vec2): GameState? {
+        val newPieceState: PieceState = this.pieceState.copy(position = newPosition)
+        return if (board.isValidPosition(newPieceState)) {
+            this.copy(pieceState = newPieceState)
         } else null
+    }
 
     /**
      * Try to rotate the piece to the new rotation
      */
     fun tryRotation(newRotation: Rotation): GameState? {
-        val piece = this.pieces.first()
-        piece.getKicks(this.rotation, newRotation).forEach { kick ->
-            if (board.isValidPosition(PieceState(piece, this.position + kick, newRotation))) {
-                return this.copy(position = this.position + kick, rotation = newRotation)
+        pieceState.piece.getKicks(pieceState.rotation, newRotation).forEach { kick ->
+            val newPieceState =
+                pieceState.copy(position = pieceState.position + kick, rotation = newRotation)
+            if (board.isValidPosition(newPieceState)) {
+                return this.copy(pieceState = newPieceState)
             }
         }
         return null
@@ -126,23 +84,22 @@ data class GameState(
      * Get the dropped position of this piece
      */
     fun getDroppedPosition(): Vec2 {
-        var dropPos = this.position
+        var dropPos = pieceState.position
         var newDropPos = dropPos
-        while (board.isValidPosition(PieceState(this.pieces.first(), newDropPos, this.rotation))) {
+        while (board.isValidPosition(pieceState.copy(position = newDropPos))) {
             dropPos = newDropPos
             newDropPos += Vec2(0, -1)
         }
         return dropPos
     }
 
-    fun getShadow(): List<Vec2> = this.pieces.first().getCoordinates(this.rotation)
-        .map { coord -> getDroppedPosition() + coord }
+    fun getShadow(): List<Vec2> = pieceState.copy(position = getDroppedPosition()).coordinates
 
     /**
      * Return a pair of (the new game state, whether the piece was locked)
      */
     fun drop(): Pair<GameState, Boolean> =
-        when (val newState = tryPosition(this.position - Vec2(0, 1))) {
+        when (val newState = tryPosition(pieceState.position - Vec2(0, 1))) {
             is GameState -> Pair(newState.resetLockDelay(), false)
             else -> Pair(addPieceToBoard().resetLockDelay(), true)
         }
@@ -165,8 +122,13 @@ data class GameState(
         this
     }
 
-    fun addScore(clearedLines: Set<Int>): GameState = this.copy(
-        score = this.score.copy(
+    /**
+     * Add to the state's score from the cleared lines
+     * @param clearedLines A set of the cleared line indices
+     * @return A pair of (new state, did level up?)
+     */
+    fun addScore(clearedLines: Set<Int>): Pair<GameState, Boolean> {
+        val (newScore, levelledUp) = this.score.copy(
             lastClearWasTetris = (clearedLines.size >= 4),
             score = this.score.score + when (clearedLines.size) {
                 0 -> 0
@@ -176,15 +138,23 @@ data class GameState(
                 else -> if (this.score.lastClearWasTetris) 12 * this.score.level else 8 * this.score.level
             }
         ).checkLevelUp()
+        return Pair(this.copy(score = newScore), levelledUp)
+    }
+
+    data class AddPieceToBoardReturn(
+        val gameState: GameState,
+        val gameOver: Boolean,
+        val levelledUp: Boolean
     )
 
-    fun addPieceToBoard(): GameState {
+    /**
+     * Add the current piece to the board, update the score and check whether it's game over
+     * @return A pair of (the new game state with updated piece and score, if the game is over)
+     */
+    fun addPieceToBoard(): AddPieceToBoardReturn {
+
         var newBoard =
-            board.addPiece(PieceState(
-                this.pieces.first(),
-                this.position,
-                this.rotation
-            ))
+            board.addPiece(pieceState)
         val (clearedLines, lineOffsets) = newBoard.getLineOffsets()
         newBoard = newBoard.applyRowChanges(clearedLines, lineOffsets)
         val isPieceAboveLimit = (0 until newBoard.width).any {
@@ -195,22 +165,33 @@ data class GameState(
                 )
             )
         }
-        return this.copy(
+        val (newState, levelledUp) = this.copy(
             board = newBoard,
             pieces = this.pieces.drop(1),
             holdUsed = false,
             mode = if (isPieceAboveLimit) Mode.GameOver else this.mode
-        ).addScore(clearedLines).getNextPiece()
+        ).addScore(clearedLines)
+        return AddPieceToBoardReturn(
+            newState,
+            gameOver = isPieceAboveLimit,
+            levelledUp = levelledUp
+        )
     }
 
+    /**
+     * Get the next piece from the queue
+     * @return the game state with new pieces
+     */
     fun getNextPiece(): GameState {
         val newState = this.ensureEnoughPieces().resetPosition()
         return newState.copy(
             mode = if (!newState.board.isValidPosition(
-                    PieceState(newState.pieces.first(),
-                    newState.position,
-                    newState.rotation
-                ))
+                    PieceState(
+                        newState.pieces.first(),
+                        newState.position,
+                        newState.rotation
+                    )
+                )
             ) {
                 Mode.GameOver
             } else {
@@ -236,11 +217,13 @@ data class GameState(
         ((0.8 - ((this.score.level - 1) * 0.007)).pow(this.score.level - 1) * 1000).toLong()
 
     fun resetPosition(): GameState = this.copy(
-        position = Vec2(
-            board.width / 2 - pieces.first().offset, if (pieces.first() == Piece.I) {
-                settings.startingHeight - 1
-            } else settings.startingHeight
-        ), rotation = Rotation.None
+        pieceState = pieceState.copy(
+            position = Vec2(
+                board.width / 2 - pieceState.piece.offset, if (pieceState.piece == Piece.I) {
+                    settings.startingHeight - 1
+                } else settings.startingHeight
+            ), rotation = Rotation.None
+        )
     )
 
     fun resetLockDelay(): GameState = this.copy(lockDelay = this.lockDelay.reset())
