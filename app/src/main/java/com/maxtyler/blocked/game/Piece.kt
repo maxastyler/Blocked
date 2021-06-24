@@ -1,8 +1,14 @@
 package com.maxtyler.blocked.game
 
+/**
+ * An enum class containing the different possible pieces
+ */
 enum class Piece {
     I, J, L, O, S, T, Z;
 
+    /**
+     * Convert each piece to its letter
+     */
     override fun toString(): String = when (this) {
         I -> "I"
         J -> "J"
@@ -13,7 +19,11 @@ enum class Piece {
         Z -> "Z"
     }
 
-    fun getCoordinates(rotation: Rotation) =
+    /**
+     * @param rotation The rotation of the piece
+     * @return A list of the positions of the blocks in the piece
+     */
+    fun getCoordinates(rotation: Rotation): List<Vec2> =
         when (this) {
             I -> when (rotation) {
                 Rotation.None -> listOf(Vec2(0, -1), Vec2(1, -1), Vec2(2, -1), Vec2(3, -1))
@@ -59,7 +69,13 @@ enum class Piece {
             }
         }
 
-    fun getKicks(from: Rotation, to: Rotation) =
+    /**
+     * Get a list of the kicks to try when rotating the piece
+     * @param from the rotation we're coming from
+     * @param to the rotation we're going to
+     * @return The list of kicks
+     */
+    fun getKicks(from: Rotation, to: Rotation): List<Vec2> =
         when (this) {
             I -> when (from to to) {
                 (Rotation.None to Rotation.Right) -> listOf(
@@ -181,6 +197,9 @@ enum class Piece {
             }
         }
 
+    /**
+     * The offset that should be applied to the piece when placing it
+     */
     val offset: Int
         get() = when (this) {
             I -> 2
@@ -193,17 +212,10 @@ enum class Piece {
         }
 
     companion object {
+        /**
+         * Get a list of all of the pieces in a random order
+         * @return The list of shuffled pieces
+         */
         fun shuffled(): List<Piece> = listOf(I, J, L, O, S, T, Z).shuffled()
-
-        fun fromString(s: String): Piece = when (s) {
-            "I" -> I
-            "J" -> J
-            "L" -> L
-            "S" -> S
-            "O" -> O
-            "Z" -> Z
-            else -> T
-        }
-
     }
 }

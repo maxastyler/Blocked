@@ -3,63 +3,28 @@ package com.maxtyler.blocked.game
 import androidx.compose.ui.graphics.Color
 import kotlin.math.pow
 
-fun colourBlockfromString(s: String): ColourBlock = when (s) {
-    "I" -> ColourBlock.I
-    "J" -> ColourBlock.J
-    "L" -> ColourBlock.L
-    "S" -> ColourBlock.S
-    "O" -> ColourBlock.O
-    "Z" -> ColourBlock.Z
-    else -> ColourBlock.T
-}
-
-enum class ColourBlock : Block {
-    I, J, L, S, O, Z, T;
-
-    override fun toString(): String = when (this) {
-        I -> "I"
-        J -> "J"
-        L -> "L"
-        S -> "S"
-        O -> "O"
-        Z -> "Z"
-        T -> "T"
+object ColourBlock {
+    fun rachelColour(piece: Piece): Color = when (piece) {
+        Piece.I -> Color(177, 186, 140)
+        Piece.J -> Color(200, 189, 242)
+        Piece.L -> Color(161, 114, 128)
+        Piece.S -> Color(86, 107, 101)
+        Piece.O -> Color(87, 3, 28)
+        Piece.Z -> Color(83, 194, 161)
+        Piece.T -> Color(49, 4, 209)
     }
 
-    fun rachelColour(): Color = when (this) {
-        I -> Color(177, 186, 140)
-        J -> Color(200, 189, 242)
-        L -> Color(161, 114, 128)
-        S -> Color(86, 107, 101)
-        O -> Color(87, 3, 28)
-        Z -> Color(83, 194, 161)
-        T -> Color(49, 4, 209)
+    fun natisColour(piece: Piece): Color = when (piece) {
+        Piece.I -> Color(204, 65, 149)
+        Piece.J -> Color(116, 116, 117)
+        Piece.L -> Color(50, 82, 62)
+        Piece.S -> Color(102, 22, 70)
+        Piece.O -> Color(42, 50, 115)
+        Piece.Z -> Color(196, 182, 51)
+        Piece.T -> Color(134, 235, 174)
     }
 
-    fun natisColour(): Color = when (this) {
-        I -> Color(204, 65, 149)
-        J -> Color(116, 116, 117)
-        L -> Color(50, 82, 62)
-        S -> Color(102, 22, 70)
-        O -> Color(42, 50, 115)
-        Z -> Color(196, 182, 51)
-        T -> Color(134, 235, 174)
-    }
-
-    override fun toColour(): Color = rachelColour()
-
-    companion object {
-
-        fun fromPiece(piece: Piece): ColourBlock = when (piece) {
-            Piece.I -> I
-            Piece.J -> J
-            Piece.L -> L
-            Piece.S -> S
-            Piece.O -> O
-            Piece.Z -> Z
-            Piece.T -> T
-        }
-    }
+    fun toColour(piece: Piece): Color = rachelColour(piece)
 }
 
 data class GameState(
@@ -140,7 +105,7 @@ data class GameState(
      * To to put the piece in the new position
      */
     fun tryPosition(newPosition: Vec2): GameState? =
-        if (board.isValidPosition(this.pieces.first(), newPosition, this.rotation)) {
+        if (board.isValidPosition(PieceState(this.pieces.first(), newPosition, this.rotation))) {
             this.copy(position = newPosition)
         } else null
 
@@ -150,7 +115,7 @@ data class GameState(
     fun tryRotation(newRotation: Rotation): GameState? {
         val piece = this.pieces.first()
         piece.getKicks(this.rotation, newRotation).forEach { kick ->
-            if (board.isValidPosition(piece, this.position + kick, newRotation)) {
+            if (board.isValidPosition(PieceState(piece, this.position + kick, newRotation))) {
                 return this.copy(position = this.position + kick, rotation = newRotation)
             }
         }
@@ -163,7 +128,7 @@ data class GameState(
     fun getDroppedPosition(): Vec2 {
         var dropPos = this.position
         var newDropPos = dropPos
-        while (board.isValidPosition(this.pieces.first(), newDropPos, this.rotation)) {
+        while (board.isValidPosition(PieceState(this.pieces.first(), newDropPos, this.rotation))) {
             dropPos = newDropPos
             newDropPos += Vec2(0, -1)
         }
@@ -215,11 +180,11 @@ data class GameState(
 
     fun addPieceToBoard(): GameState {
         var newBoard =
-            board.addPiece(
+            board.addPiece(PieceState(
                 this.pieces.first(),
                 this.position,
                 this.rotation
-            ) { ColourBlock.fromPiece(it) }
+            ))
         val (clearedLines, lineOffsets) = newBoard.getLineOffsets()
         newBoard = newBoard.applyRowChanges(clearedLines, lineOffsets)
         val isPieceAboveLimit = (0 until newBoard.width).any {
@@ -242,10 +207,10 @@ data class GameState(
         val newState = this.ensureEnoughPieces().resetPosition()
         return newState.copy(
             mode = if (!newState.board.isValidPosition(
-                    newState.pieces.first(),
+                    PieceState(newState.pieces.first(),
                     newState.position,
                     newState.rotation
-                )
+                ))
             ) {
                 Mode.GameOver
             } else {
@@ -287,6 +252,5 @@ data class GameState(
 
     fun pause(): GameState = this.copy(mode = Mode.Paused)
     fun resume(): GameState = this.copy(mode = Mode.Playing)
-
 }
 

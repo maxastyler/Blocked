@@ -12,7 +12,7 @@ data class Save(
     @PrimaryKey val id: Int = 0,
     val width: Int,
     val height: Int,
-    val board: Map<Vec2, Block>,
+    val board: Map<Vec2, Piece>,
     val score: Int,
     val lastClearWasTetris: Boolean = false,
     val level: Int = 1,

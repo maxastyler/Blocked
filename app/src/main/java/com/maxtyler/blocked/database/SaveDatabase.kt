@@ -20,18 +20,18 @@ class SaveConverters {
     }
 
     @TypeConverter
-    fun boardToString(value: Map<Vec2, Block>?): String? {
+    fun boardToString(value: Map<Vec2, Piece>?): String? {
         return value?.let {
             it.entries.map { (k, v) -> "$k;$v" }
         }?.joinToString(separator = "~")
     }
 
     @TypeConverter
-    fun stringToBoard(value: String?): Map<Vec2, Block>? {
+    fun stringToBoard(value: String?): Map<Vec2, Piece>? {
         return value?.let {
             it.split("~").map {
                 val split = it.split(";")
-                Vec2.fromString(split[0]) to ColourBlock.fromPiece(Piece.fromString(split[1]))
+                Vec2.fromString(split[0]) to Piece.valueOf(split[1])
             }.toMap()
         }
     }
@@ -46,7 +46,7 @@ class SaveConverters {
     fun pieceToString(piece: Piece?): String? = piece?.toString()
 
     @TypeConverter
-    fun stringToPiece(value: String?): Piece? = value?.let { Piece.fromString(it) }
+    fun stringToPiece(value: String?): Piece? = value?.let { Piece.valueOf(it) }
 
     @TypeConverter
     fun vecToString(v: Vec2?): String? = v?.toString()
@@ -60,7 +60,7 @@ class SaveConverters {
 
     @TypeConverter
     fun stringsToPieces(strings: String?): List<Piece>? =
-        strings?.split(",")?.let { it.map { Piece.fromString(it) } }
+        strings?.split(",")?.let { it.map { Piece.valueOf(it) } }
 }
 
 @Database(entities = [Save::class], version = 1, exportSchema = true)

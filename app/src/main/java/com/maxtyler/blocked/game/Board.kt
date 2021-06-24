@@ -2,12 +2,13 @@ package com.maxtyler.blocked.game
 
 import androidx.compose.ui.graphics.Color
 
-interface Block {
-    fun toColour(): Color
-    override fun toString(): String
-}
-
-data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Block>) {
+/**
+ * The state of the board
+ * @param width The width of the board
+ * @param height The height of the board
+ * @param blocks The blocks, a map of the position of the block to the piece type
+ */
+data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Piece>) {
 
     /**
      * Check if the piece with the given position and rotation is in a valid position
@@ -16,10 +17,8 @@ data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Block>) 
      * @param rotation The rotation of the piece
      * @return Whether the piece is in bounds and non-overlapping
      */
-    fun isValidPosition(piece: Piece, position: Vec2, rotation: Rotation): Boolean {
-        piece.getCoordinates(rotation)
-            .map { coord -> coord + position }
-            .forEach { pos ->
+    fun isValidPosition(pieceState: PieceState): Boolean {
+        pieceState.coordinates.forEach { pos ->
                 if ((pos.x < 0) ||
                     (pos.x >= this.width) ||
                     (pos.y < 0) ||
@@ -29,18 +28,18 @@ data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Block>) 
         return true
     }
 
-    fun addPiece(
-        piece: Piece,
-        position: Vec2,
-        rotation: Rotation,
-        blockFun: (Piece) -> Block
-    ): Board = this.copy(blocks = this.blocks + (piece.getCoordinates(rotation)
-        .map { coord -> (coord + position) to blockFun(piece) }
-        .toMap()))
+    /**
+     * Add the piece described by pieceState to the board
+     * @param pieceState The piece
+     * @return The new board with the piece added to it
+     */
+    fun addPiece(pieceState: PieceState): Board =
+        this.copy(blocks = this.blocks + pieceState.coordinates.map { it -> it to pieceState.piece }
+            .toMap())
 
     /**
      * Get the offsets to move a line down with
-     * @return A pair of the indices that need to be delete, and the rows mapped to their drop distance
+     * @return A pair of the indices that need to be deleted, and the rows mapped to their drop distance
      */
     fun getLineOffsets(): Pair<Set<Int>, Map<Int, Int>> {
         val fullRows = (0 until this.height).map { i ->
@@ -77,6 +76,4 @@ data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Block>) 
         return this.copy(blocks = this.blocks.filter { (k, _) -> !(k.y in toDelete) }
             .mapKeys { Vec2(it.key.x, toDrop.getOrDefault(it.key.y, it.key.y)) })
     }
-
-    companion object
 }
