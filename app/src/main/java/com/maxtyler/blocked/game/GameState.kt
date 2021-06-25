@@ -67,7 +67,7 @@ data class GameState(
     /**
      * Try to rotate the piece to the new rotation
      */
-    fun tryRotation(newRotation: Rotation): GameState? {
+    fun tryRotation(newRotation: Rotation): GameState?{
         pieceState.piece.getKicks(pieceState.rotation, newRotation).forEach { kick ->
             val newPieceState =
                 pieceState.copy(position = pieceState.position + kick, rotation = newRotation)
