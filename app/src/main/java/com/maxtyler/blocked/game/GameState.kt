@@ -46,8 +46,7 @@ data class GameState(
         mode = Mode.Playing,
         lockDelay = LockState(15, 15),
         settings = GameSettings(22)
-    ) {
-    }
+    )
 
     enum class Mode {
         Playing,
@@ -106,11 +105,11 @@ data class GameState(
             else -> addPieceToBoard().let { it.copy(gameState = it.gameState.resetLockDelay()) }
         }
 
-    fun hardDrop(): DropReturn {
+    fun hardDrop(): AddPieceToBoardReturn {
         val pos = getDroppedPosition()
         when (val newState = tryPosition(pos)) {
-            null -> return this.drop()
-            else -> return newState.drop()
+            null -> return this.drop() as AddPieceToBoardReturn
+            else -> return newState.drop() as AddPieceToBoardReturn
         }
     }
 

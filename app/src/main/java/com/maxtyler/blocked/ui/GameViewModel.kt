@@ -105,13 +105,19 @@ class GameViewModel @Inject constructor(
      * @param computerDrop Whether the piece was gravity-dropped or not
      */
     fun drop(computerDrop: Boolean) {
-        gameState.value.let { gameState ->
+        _gameState.value.let { gameState ->
             when (gameState.mode) {
                 GameState.Mode.Playing -> {
 
                     val (newState, locked) = when (val x = gameState.drop()) {
                         is GameState.Dropped -> Pair(x.gameState, false)
-                        is GameState.AddPieceToBoardReturn -> Pair(x.gameState, true)
+                        is GameState.AddPieceToBoardReturn -> {
+                            if (x.gameOver) {
+                                submitScore()
+                                clearSave()
+                            }
+                            Pair(x.gameState, true)
+                        }
                     }
 
                     // do the drop vibration if it was dropped by a player
@@ -129,10 +135,6 @@ class GameViewModel @Inject constructor(
                     } else {
                         lockTimer.stop()
                         _gameState.value = newState
-                    }
-                    if (newState.mode == GameState.Mode.GameOver) {
-                        submitScore()
-                        clearSave()
                     }
                 }
             }
@@ -153,10 +155,7 @@ class GameViewModel @Inject constructor(
 
     fun hardDrop() {
         gameState.value.let { gameState ->
-            _gameState.value = when (val x = gameState.hardDrop()) {
-                is GameState.Dropped -> x.gameState
-                is GameState.AddPieceToBoardReturn -> x.gameState
-            }
+            _gameState.value = gameState.hardDrop().gameState
             vibrate(dropVibrationEffect)
         }
     }

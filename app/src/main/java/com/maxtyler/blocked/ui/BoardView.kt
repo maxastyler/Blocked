@@ -55,7 +55,7 @@ fun BoardView(gameState: GameState) {
                 drawBlock(
                     Offset(xpos, ypos),
                     blockSize,
-                    ColourBlock.toColour(gameState.pieces.first())
+                    ColourBlock.toColour(gameState.pieceState.piece)
                 )
             }
         }

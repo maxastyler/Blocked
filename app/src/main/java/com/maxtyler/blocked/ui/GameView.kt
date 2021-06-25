@@ -281,10 +281,3 @@ fun PieceView(piece: Piece) {
         Text(piece.toString(), modifier = Modifier.align(Alignment.Center))
     }
 }
-
-@Preview
-@Composable
-fun GameViewPreview() {
-    val state = GameState(width = 4, height = 5)
-    GameView()
-}
