@@ -107,9 +107,9 @@ data class GameState(
 
     fun hardDrop(): AddPieceToBoardReturn {
         val pos = getDroppedPosition()
-        when (val newState = tryPosition(pos)) {
-            null -> return this.drop() as AddPieceToBoardReturn
-            else -> return newState.drop() as AddPieceToBoardReturn
+        return when (val newState = tryPosition(pos)) {
+            null -> this.drop() as AddPieceToBoardReturn
+            else -> newState.drop() as AddPieceToBoardReturn
         }
     }
 
