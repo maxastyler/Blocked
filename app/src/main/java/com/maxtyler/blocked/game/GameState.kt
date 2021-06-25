@@ -192,7 +192,10 @@ data class GameState(
         )
     }.resetPosition()
 
-
+    /**
+     * Hold a piece in the hold spot
+     * @return A pair of (the new game state, whether the piece was held)
+     */
     fun holdPiece(): Pair<GameState, Boolean> = if (!holdUsed) {
         Pair(when (held) {
             null -> this.ensureEnoughPieces().let {

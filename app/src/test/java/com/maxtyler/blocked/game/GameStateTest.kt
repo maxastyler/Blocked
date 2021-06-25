@@ -57,7 +57,8 @@ class GameStateTest : TestCase() {
         assertFalse(ret.gameOver)
         assertFalse(ret.levelledUp)
         assertEquals(ret.gameState.pieceState.piece, defaultGame.pieces.first())
-        val newRet = defaultGame.tryPosition(Vec2(5, defaultGame.settings.gameOverHeight))!!.addPieceToBoard()
+        val newRet = defaultGame.tryPosition(Vec2(5, defaultGame.settings.gameOverHeight))!!
+            .addPieceToBoard()
         assert(newRet.gameOver)
         assertEquals(newRet.gameState.mode, GameState.Mode.GameOver)
         assertFalse(newRet.levelledUp)
@@ -69,7 +70,23 @@ class GameStateTest : TestCase() {
         assertEquals(nextPieceState.pieceState.position.y, nextPieceState.settings.startingHeight)
     }
 
-    fun testHoldPiece() {}
+    fun testHoldPiece() {
+        assertNull(defaultGame.held)
+        assertFalse(defaultGame.holdUsed)
+        val (heldState, wasHeld) = defaultGame.holdPiece()
+        assert(wasHeld)
+        assertEquals(heldState.held, defaultGame.pieceState.piece)
+        assert(heldState.holdUsed)
+        assertEquals(
+            heldState.pieceState.position.y,
+            heldState.settings.startingHeight
+        )
+        assertFalse(heldState.holdPiece().second)
+        val (newHeld, newWasHeld) = heldState.copy(holdUsed = false).holdPiece()
+        assert(newWasHeld)
+        assertEquals(newHeld.held, heldState.pieceState.piece)
+        assertEquals(newHeld.pieceState.piece, heldState.held)
+    }
 
     fun testResetPosition() {}
 
