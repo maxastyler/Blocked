@@ -97,7 +97,7 @@ data class GameState(
     data class Dropped(val gameState: GameState) : DropReturn()
 
     /**
-     * Return a pair of (the new game state, whether the piece was locked)
+     * Drop and return the new state and whether the piece was locked or not
      */
     fun drop(): DropReturn =
         when (val newState = tryPosition(pieceState.position - Vec2(0, 1))) {
