@@ -43,7 +43,7 @@ class GameViewModel @Inject constructor(
         }
         viewModelScope.launch {
             pauseTimer.events.collect {
-                gravityTimer.start(_gameState.value.dropTime(), true)
+                gravityTimer.start(_gameState.value.score.dropTime, true)
                 _gameState.value = _gameState.value.resume()
             }
         }
@@ -64,7 +64,7 @@ class GameViewModel @Inject constructor(
     fun startGame(width: Int = 10, height: Int = 30) {
         lockTimer.stop()
         _gameState.value = GameState(width = width, height = height).resetPosition()
-        gravityTimer.start(_gameState.value.dropTime(), true)
+        gravityTimer.start(_gameState.value.score.dropTime, true)
     }
 
     fun restart() {
@@ -75,7 +75,7 @@ class GameViewModel @Inject constructor(
         when (rotation) {
             Rotation.Right, Rotation.Left ->
                 when (val newState =
-                    gameState.value.tryRotation(gameState.value.rotation + rotation)) {
+                    gameState.value.tryRotation(gameState.value.pieceState.rotation + rotation)) {
                     is GameState -> {
                         val s = newState.useLockRotation()
                         _gameState.value = s
@@ -88,7 +88,7 @@ class GameViewModel @Inject constructor(
     }
 
     fun move(direction: Vec2) {
-        gameState.value.tryPosition(gameState.value.position + direction)
+        gameState.value.tryPosition(gameState.value.pieceState.position + direction)
             ?.run {
                 vibrate(moveVibrationEffect)
                 val newState = this.useLockMovement()
@@ -108,8 +108,11 @@ class GameViewModel @Inject constructor(
         gameState.value.let { gameState ->
             when (gameState.mode) {
                 GameState.Mode.Playing -> {
-                    val (newState, locked)
-                            = gameState.drop()
+
+                    val (newState, locked) = when (val x = gameState.drop()) {
+                        is GameState.Dropped -> Pair(x.gameState, false)
+                        is GameState.AddPieceToBoardReturn -> Pair(x.gameState, true)
+                    }
 
                     // do the drop vibration if it was dropped by a player
                     if (!computerDrop) vibrate(moveVibrationEffect)
@@ -120,7 +123,7 @@ class GameViewModel @Inject constructor(
                                 lockTimer.start(gameState.lockDelay.timeOut)
                             }
                         } else {
-                            gravityTimer.start(newState.dropTime(), true)
+                            gravityTimer.start(newState.score.dropTime, true)
                             _gameState.value = newState
                         }
                     } else {
@@ -150,7 +153,10 @@ class GameViewModel @Inject constructor(
 
     fun hardDrop() {
         gameState.value.let { gameState ->
-            _gameState.value = gameState.hardDrop()
+            _gameState.value = when (val x = gameState.hardDrop()) {
+                is GameState.Dropped -> x.gameState
+                is GameState.AddPieceToBoardReturn -> x.gameState
+            }
             vibrate(dropVibrationEffect)
         }
     }
@@ -158,7 +164,7 @@ class GameViewModel @Inject constructor(
     fun hold() {
         gameState.value.let { gameState ->
             if (!gameState.holdUsed) vibrate(moveVibrationEffect)
-            _gameState.value = gameState.holdPiece()
+            _gameState.value = gameState.holdPiece().first
         }
     }
 

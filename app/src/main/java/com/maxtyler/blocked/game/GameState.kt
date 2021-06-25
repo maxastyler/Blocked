@@ -1,7 +1,6 @@
 package com.maxtyler.blocked.game
 
 import androidx.compose.ui.graphics.Color
-import kotlin.math.pow
 
 object ColourBlock {
     fun rachelColour(piece: Piece): Color = when (piece) {
@@ -95,20 +94,23 @@ data class GameState(
 
     fun getShadow(): List<Vec2> = pieceState.copy(position = getDroppedPosition()).coordinates
 
+    sealed class DropReturn
+    data class Dropped(val gameState: GameState) : DropReturn()
+
     /**
      * Return a pair of (the new game state, whether the piece was locked)
      */
-    fun drop(): Pair<GameState, Boolean> =
+    fun drop(): DropReturn =
         when (val newState = tryPosition(pieceState.position - Vec2(0, 1))) {
-            is GameState -> Pair(newState.resetLockDelay(), false)
-            else -> Pair(addPieceToBoard().resetLockDelay(), true)
+            is GameState -> Dropped(newState.resetLockDelay())
+            else -> addPieceToBoard().let { it.copy(gameState = it.gameState.resetLockDelay()) }
         }
 
-    fun hardDrop(): GameState {
+    fun hardDrop(): DropReturn {
         val pos = getDroppedPosition()
         when (val newState = tryPosition(pos)) {
-            null -> return this.drop().first
-            else -> return newState.drop().first
+            null -> return this.drop()
+            else -> return newState.drop()
         }
     }
 
@@ -141,11 +143,12 @@ data class GameState(
         return Pair(this.copy(score = newScore), levelledUp)
     }
 
+
     data class AddPieceToBoardReturn(
         val gameState: GameState,
         val gameOver: Boolean,
         val levelledUp: Boolean
-    )
+    ) : DropReturn()
 
     /**
      * Add the current piece to the board, update the score and check whether it's game over
@@ -165,57 +168,52 @@ data class GameState(
                 )
             )
         }
-        val (newState, levelledUp) = this.copy(
-            board = newBoard,
-            pieces = this.pieces.drop(1),
-            holdUsed = false,
-            mode = if (isPieceAboveLimit) Mode.GameOver else this.mode
-        ).addScore(clearedLines)
+        val (newState, levelledUp) = this.copy(board = newBoard).getNextPiece()
+            .addScore(clearedLines)
+
+        val gameOver = isPieceAboveLimit || (!newState.board.isValidPosition(newState.pieceState))
+
         return AddPieceToBoardReturn(
-            newState,
-            gameOver = isPieceAboveLimit,
+            newState.copy(mode = if (gameOver) Mode.GameOver else newState.mode),
+            gameOver = gameOver,
             levelledUp = levelledUp
         )
     }
 
     /**
      * Get the next piece from the queue
-     * @return the game state with new pieces
+     * @return the game state with the new piece added. You should check if this new piece
+     * causes a game over once added.
      */
-    fun getNextPiece(): GameState {
-        val newState = this.ensureEnoughPieces().resetPosition()
-        return newState.copy(
-            mode = if (!newState.board.isValidPosition(
-                    PieceState(
-                        newState.pieces.first(),
-                        newState.position,
-                        newState.rotation
-                    )
-                )
-            ) {
-                Mode.GameOver
-            } else {
-                newState.mode
-            }
+    fun getNextPiece(): GameState = this.ensureEnoughPieces().let {
+        it.copy(
+            pieceState = it.pieceState.copy(piece = it.pieces.first()),
+            pieces = it.pieces.drop(1),
+            holdUsed = false,
         )
-    }
+    }.resetPosition()
 
-    fun holdPiece(): GameState = if (!holdUsed) {
-        when (held) {
-            null -> this.copy(
-                held = this.pieces.first(),
-                pieces = this.pieces.drop(1)
-            ).ensureEnoughPieces()
+
+    fun holdPiece(): Pair<GameState, Boolean> = if (!holdUsed) {
+        Pair(when (held) {
+            null -> this.ensureEnoughPieces().let {
+                it.copy(
+                    held = it.pieceState.piece,
+                    pieceState = it.pieceState.copy(piece = it.pieces.first()),
+                    pieces = it.pieces.drop(1)
+                )
+            }
             else -> this.copy(
-                held = this.pieces.first(),
-                pieces = listOf(this.held) + this.pieces.drop(1)
+                held = this.pieceState.piece,
+                pieceState = this.pieceState.copy(piece = this.held)
             )
-        }.copy(holdUsed = true).resetPosition()
-    } else this
+        }.copy(holdUsed = true).resetPosition(), true)
+    } else Pair(this, false)
 
-    fun dropTime(): Long =
-        ((0.8 - ((this.score.level - 1) * 0.007)).pow(this.score.level - 1) * 1000).toLong()
-
+    /**
+     * Reset the position of the piece to the top of the game board
+     * @return The game state with the piece reset
+     */
     fun resetPosition(): GameState = this.copy(
         pieceState = pieceState.copy(
             position = Vec2(
@@ -227,6 +225,7 @@ data class GameState(
     )
 
     fun resetLockDelay(): GameState = this.copy(lockDelay = this.lockDelay.reset())
+
     fun useLockRotation(): GameState =
         this.copy(lockDelay = this.lockDelay.copy(rotationsLeft = this.lockDelay.rotationsLeft - 1))
 

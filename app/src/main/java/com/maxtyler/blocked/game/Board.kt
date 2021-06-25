@@ -76,4 +76,13 @@ data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Piece>) 
         return this.copy(blocks = this.blocks.filter { (k, _) -> !(k.y in toDelete) }
             .mapKeys { Vec2(it.key.x, toDrop.getOrDefault(it.key.y, it.key.y)) })
     }
+
+    /**
+     * Chech if there are any pieces on the board at the given height
+     * @param height The height to check against
+     * @return Whether there was a piece at the given height
+     */
+    fun isAnyPieceAtHeight(height: Int): Boolean = (0 until width).any {
+        blocks.containsKey(Vec2(it, height))
+    }
 }

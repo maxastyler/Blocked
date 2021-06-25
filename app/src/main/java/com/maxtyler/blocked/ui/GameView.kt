@@ -226,7 +226,7 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
                         ) {
                             HeldPiece(piece = state.held)
                             Spacer(modifier = Modifier.height(20.dp))
-                            NextPieces(pieces = state.pieces.drop(1).take(6))
+                            NextPieces(pieces = state.pieces.take(6))
                         }
                     }
                     Box(modifier = Modifier.align(Alignment.CenterVertically)) { BoardView(state) }

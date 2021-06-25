@@ -1,5 +1,7 @@
 package com.maxtyler.blocked.game
 
+import kotlin.math.pow
+
 data class Score(
     val score: Int,
     val lastClearWasTetris: Boolean,
@@ -15,4 +17,11 @@ data class Score(
     fun checkLevelUp(): Pair<Score, Boolean> = if (score - levelStartScore >= 5 * level * level) {
         Pair(this.copy(level = level + 1, levelStartScore = score), true)
     } else Pair(this, false)
+
+    /**
+     * The current drop time
+     */
+    val dropTime: Long
+        get() = ((0.8 - ((level - 1) * 0.007)).pow(level - 1) * 1000).toLong()
+
 }

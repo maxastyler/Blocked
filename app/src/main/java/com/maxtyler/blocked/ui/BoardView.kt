@@ -48,8 +48,7 @@ fun BoardView(gameState: GameState) {
             drawBlock(Offset(xpos, ypos), blockSize, Color.LightGray)
         }
 
-        gameState.pieces.first().getCoordinates(gameState.rotation).forEach { nPos ->
-            val pos = nPos + gameState.position
+        gameState.pieceState.coordinates.forEach { pos ->
             if (pos.y < renderHeight) {
                 val xpos = blockLength * pos.x
                 val ypos = innerHeight - blockLength * pos.y

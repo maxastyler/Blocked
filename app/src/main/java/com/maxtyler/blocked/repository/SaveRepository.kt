@@ -3,6 +3,7 @@ package com.maxtyler.blocked.repository
 import com.maxtyler.blocked.database.Save
 import com.maxtyler.blocked.database.SaveDatabase
 import com.maxtyler.blocked.game.GameState
+import com.maxtyler.blocked.game.Score
 import javax.inject.Inject
 
 class SaveRepository @Inject constructor(private val saveDatabase: SaveDatabase) {
@@ -19,8 +20,8 @@ class SaveRepository @Inject constructor(private val saveDatabase: SaveDatabase)
             lastClearWasTetris = state.score.lastClearWasTetris,
             level = state.score.level,
             levelStartScore = state.score.levelStartScore,
-            position = state.position,
-            rotation = state.rotation,
+            position = state.pieceState.position,
+            rotation = state.pieceState.rotation,
             pieces = state.pieces,
             held = state.held,
             holdUsed = state.holdUsed
@@ -32,14 +33,13 @@ class SaveRepository @Inject constructor(private val saveDatabase: SaveDatabase)
         val state = GameState(width = it.width, height = it.height)
         state.copy(
             board = state.board.copy(blocks = it.board),
-            score = GameState.Score(
+            score = Score(
                 it.score,
                 it.lastClearWasTetris,
                 it.level,
                 it.levelStartScore
             ),
-            position = it.position,
-            rotation = it.rotation,
+            pieceState = state.pieceState.copy(position = it.position, rotation = it.rotation),
             pieces = it.pieces,
             held = it.held,
             holdUsed = it.holdUsed
