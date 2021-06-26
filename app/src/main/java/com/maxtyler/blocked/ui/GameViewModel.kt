@@ -106,36 +106,33 @@ class GameViewModel @Inject constructor(
      */
     fun drop(computerDrop: Boolean) {
         _gameState.value.let { gameState ->
-            when (gameState.mode) {
-                GameState.Mode.Playing -> {
-
-                    val (newState, locked) = when (val x = gameState.drop()) {
-                        is GameState.Dropped -> Pair(x.gameState, false)
-                        is GameState.AddPieceToBoardReturn -> {
-                            if (x.gameOver) {
-                                submitScore()
-                                clearSave()
-                            }
-                            Pair(x.gameState, true)
+            if (gameState.mode == GameState.Mode.Playing) {
+                val (newState, locked) = when (val x = gameState.drop()) {
+                    is GameState.Dropped -> Pair(x.gameState, false)
+                    is GameState.AddPieceToBoardReturn -> {
+                        if (x.gameOver) {
+                            submitScore()
+                            clearSave()
                         }
+                        Pair(x.gameState, true)
                     }
+                }
 
-                    // do the drop vibration if it was dropped by a player
-                    if (!computerDrop) vibrate(moveVibrationEffect)
+                // do the drop vibration if it was dropped by a player
+                if (!computerDrop) vibrate(moveVibrationEffect)
 
-                    if (locked) {
-                        if (computerDrop) {
-                            if (!lockTimer.started) {
-                                lockTimer.start(gameState.lockDelay.timeOut)
-                            }
-                        } else {
-                            gravityTimer.start(newState.score.dropTime, true)
-                            _gameState.value = newState
+                if (locked) {
+                    if (computerDrop) {
+                        if (!lockTimer.started) {
+                            lockTimer.start(gameState.lockDelay.timeOut)
                         }
                     } else {
-                        lockTimer.stop()
+                        gravityTimer.start(newState.score.dropTime, true)
                         _gameState.value = newState
                     }
+                } else {
+                    lockTimer.stop()
+                    _gameState.value = newState
                 }
             }
         }
@@ -197,7 +194,7 @@ class GameViewModel @Inject constructor(
     }
 
     fun vibrate(effect: VibrationEffect) {
-        if (!(vibrationJob?.isActive ?: false)) {
+        if (vibrationJob?.isActive != true) {
             vibrationJob = viewModelScope.launch(Dispatchers.Default) {
                 vibrator.vibrate(effect)
             }

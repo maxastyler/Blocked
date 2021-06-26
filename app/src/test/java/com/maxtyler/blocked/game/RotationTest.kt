@@ -5,7 +5,10 @@ import junit.framework.TestCase
 class RotationTest : TestCase() {
 
     fun testToInt() {
-        assertEquals(Rotation.fromInt(Rotation.Left.toInt() + Rotation.Right.toInt()), Rotation.None)
+        assertEquals(
+            Rotation.fromInt(Rotation.Left.toInt() + Rotation.Right.toInt()),
+            Rotation.None
+        )
     }
 
     fun testPlus() {

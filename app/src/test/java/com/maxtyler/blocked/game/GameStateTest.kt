@@ -88,7 +88,15 @@ class GameStateTest : TestCase() {
         assertEquals(newHeld.pieceState.piece, heldState.held)
     }
 
-    fun testResetPosition() {}
+    fun testResetPosition() {
+        val newState = defaultGame.resetPosition()
+        assertEquals(newState.pieceState.piece, defaultGame.pieceState.piece)
+        assertEquals(
+            newState.pieceState.position.y,
+            defaultGame.settings.startingHeight + 1 - newState.pieceState.piece.offset
+        )
+        assertEquals(newState.pieceState.rotation, Rotation.None)
+    }
 
     fun testResetLockDelay() {}
 
@@ -96,7 +104,18 @@ class GameStateTest : TestCase() {
 
     fun testUseLockMovement() {}
 
-    fun testPause() {}
+    fun testPause() {
+        assertEquals(defaultGame.pause().mode, GameState.Mode.Paused)
+        assertEquals(
+            defaultGame.copy(mode = GameState.Mode.GameOver).pause().mode,
+            GameState.Mode.GameOver
+        )
+    }
 
-    fun testResume() {}
+    fun testResume() {
+        val s = defaultGame.pause()
+        assertEquals(defaultGame.resume().mode, GameState.Mode.Playing)
+        assertEquals(s.resume().mode, GameState.Mode.Playing)
+        assertEquals(s.copy(mode = GameState.Mode.GameOver).resume().mode, GameState.Mode.GameOver)
+    }
 }

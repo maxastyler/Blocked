@@ -12,5 +12,5 @@ data class PieceState(val piece: Piece, val position: Vec2, val rotation: Rotati
      * All of the coordinates in the piece
      */
     val coordinates: List<Vec2>
-        get() = piece.getCoordinates(rotation).map {it + position}
+        get() = piece.getCoordinates(rotation).map { it + position }
 }

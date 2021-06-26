@@ -67,7 +67,7 @@ data class GameState(
     /**
      * Try to rotate the piece to the new rotation
      */
-    fun tryRotation(newRotation: Rotation): GameState?{
+    fun tryRotation(newRotation: Rotation): GameState? {
         pieceState.piece.getKicks(pieceState.rotation, newRotation).forEach { kick ->
             val newPieceState =
                 pieceState.copy(position = pieceState.position + kick, rotation = newRotation)
@@ -234,7 +234,8 @@ data class GameState(
     fun useLockMovement(): GameState =
         this.copy(lockDelay = this.lockDelay.copy(movesLeft = this.lockDelay.movesLeft - 1))
 
-    fun pause(): GameState = this.copy(mode = Mode.Paused)
-    fun resume(): GameState = this.copy(mode = Mode.Playing)
+    fun pause(): GameState = if (this.mode == Mode.GameOver) this else this.copy(mode = Mode.Paused)
+    fun resume(): GameState =
+        if (this.mode == Mode.GameOver) this else this.copy(mode = Mode.Playing)
 }
 

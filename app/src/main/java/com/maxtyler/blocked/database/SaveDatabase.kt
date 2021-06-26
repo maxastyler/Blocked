@@ -1,11 +1,12 @@
 package com.maxtyler.blocked.database
 
-import android.util.Log
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import com.maxtyler.blocked.game.*
+import com.maxtyler.blocked.game.Piece
+import com.maxtyler.blocked.game.Rotation
+import com.maxtyler.blocked.game.Vec2
 import java.util.*
 
 class SaveConverters {

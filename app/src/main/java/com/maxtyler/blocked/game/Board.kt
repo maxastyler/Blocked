@@ -1,7 +1,5 @@
 package com.maxtyler.blocked.game
 
-import androidx.compose.ui.graphics.Color
-
 /**
  * The state of the board
  * @param width The width of the board
@@ -12,19 +10,17 @@ data class Board(val width: Int, val height: Int, val blocks: Map<Vec2, Piece>) 
 
     /**
      * Check if the piece with the given position and rotation is in a valid position
-     * @param piece The piece to fit
-     * @param position The base position of the piece
-     * @param rotation The rotation of the piece
+     * @param pieceState The piece state to fit
      * @return Whether the piece is in bounds and non-overlapping
      */
     fun isValidPosition(pieceState: PieceState): Boolean {
         pieceState.coordinates.forEach { pos ->
-                if ((pos.x < 0) ||
-                    (pos.x >= this.width) ||
-                    (pos.y < 0) ||
-                    blocks.containsKey(pos)
-                ) return false
-            }
+            if ((pos.x < 0) ||
+                (pos.x >= this.width) ||
+                (pos.y < 0) ||
+                blocks.containsKey(pos)
+            ) return false
+        }
         return true
     }
 
