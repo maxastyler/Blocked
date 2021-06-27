@@ -48,6 +48,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+        }
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -71,6 +75,8 @@ dependencies {
     implementation("com.google.dagger:hilt-android:${rootProject.extra["hilt_version"]}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${rootProject.extra["lifecycle_version"]}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07")
+    implementation("com.google.android.gms:play-services-auth:19.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.5.0")
     kapt("com.google.dagger:hilt-android-compiler:${rootProject.extra["hilt_version"]}")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0-alpha03")
 
@@ -82,6 +88,9 @@ dependencies {
     kapt("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
     implementation("androidx.room:room-ktx:${rootProject.extra["room_version"]}")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
+
     implementation("androidx.core:core-ktx:1.5.0")
     implementation("androidx.appcompat:appcompat:1.3.0")
     implementation("com.google.android.material:material:1.3.0")
@@ -92,6 +101,10 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.3.0-beta02")
 
     implementation("com.google.android.gms:play-services-games:21.0.0")
+
+    implementation("androidx.activity:activity:${rootProject.extra["activity_version"]}")
+    implementation("androidx.activity:activity-compose:${rootProject.extra["activity_version"]}")
+    implementation("androidx.activity:activity-ktx:${rootProject.extra["activity_version"]}")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")

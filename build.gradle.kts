@@ -4,6 +4,7 @@ buildscript {
     val hilt_version by extra("2.37")
     val room_version by extra("2.3.0")
     val lifecycle_version by extra("2.3.1")
+    val activity_version by extra("1.3.0-beta02")
     repositories {
         google()
         mavenCentral()
