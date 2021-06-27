@@ -105,7 +105,7 @@ class GameViewModel @Inject constructor(
                 val (newState, locked) = when (val x = gameState.drop()) {
                     is GameState.Dropped -> Pair(x.gameState, false)
                     is GameState.AddPieceToBoardReturn -> {
-                        if (x.gameOver) onGameOver()
+                        if (x.gameOver && !computerDrop) onGameOver()
                         Pair(x.gameState, true)
                     }
                 }
