@@ -10,7 +10,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.maxtyler.blocked.game.*
+import com.maxtyler.blocked.game.GameState
+import com.maxtyler.blocked.game.Piece
+import com.maxtyler.blocked.game.Rotation
+import com.maxtyler.blocked.game.Vec2
 import com.maxtyler.blocked.ui.ColourBlock
 
 @Composable
@@ -72,10 +75,6 @@ fun DrawPiece(piece: Piece) {
     val coords = piece.getCoordinates(Rotation.None)
     val minX = coords.minOfOrNull { it.x }!!
     val minY = coords.minOfOrNull { it.y }!!
-    val maxX = coords.maxOfOrNull { it.x }!!
-    val maxY = coords.maxOfOrNull { it.y }!!
-    val nX = maxX - minX
-    val nY = maxY - minY
     Canvas(modifier = Modifier.fillMaxSize()) {
         val blockX = size.width / 4
         val blockY = size.height / 4

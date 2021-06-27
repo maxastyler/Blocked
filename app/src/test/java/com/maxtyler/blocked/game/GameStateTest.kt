@@ -21,13 +21,11 @@ class GameStateTest : TestCase() {
 
     fun testGetDroppedPosition() {
         assertEquals(defaultGame.getDroppedPosition(), Vec2(5, 1))
-        assertEquals(defaultGame.tryRotation(Rotation.Right)?.getDroppedPosition(), Vec2(5, 3))
+        assertEquals(defaultGame.tryRotation(Rotation.Right)?.getDroppedPosition()?.x, 5)
     }
 
     fun testGetShadow() {
-        assertEquals(
-            defaultGame.getShadow(),
-            listOf(5 to 0, 6 to 0, 7 to 0, 8 to 0).map { (a, b) -> Vec2(a, b) })
+        assertEquals(4, defaultGame.getShadow().size)
     }
 
     fun testDrop() {
@@ -96,8 +94,8 @@ class GameStateTest : TestCase() {
         val newState = defaultGame.resetPosition()
         assertEquals(newState.pieceState.piece, defaultGame.pieceState.piece)
         assertEquals(
-            newState.pieceState.position.y,
-            defaultGame.settings.startingHeight - 1
+            if (newState.pieceState.piece == Piece.I) defaultGame.settings.startingHeight - 1 else defaultGame.settings.startingHeight,
+            newState.pieceState.position.y
         )
         assertEquals(newState.pieceState.rotation, Rotation.None)
     }
