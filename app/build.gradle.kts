@@ -1,3 +1,8 @@
+fun Project.propertyOrEmpty(name: String): String {
+    val property = findProperty(name) as String?
+    return property ?: ""
+}
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -6,6 +11,20 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("/home/mt3/Android/key/debug_key.jks")
+            storePassword = propertyOrEmpty("debug_key_password")
+            keyAlias = "blocked_key"
+            keyPassword = propertyOrEmpty("debug_key_password")
+        }
+        create("release") {
+            storeFile = file("/home/mt3/Android/key/android_key.jks")
+            storePassword = propertyOrEmpty("release_key_password")
+            keyPassword = propertyOrEmpty("release_key_password")
+            keyAlias = "blocked_key"
+        }
+    }
     compileSdk = 30
     buildToolsVersion = "30.0.3"
 

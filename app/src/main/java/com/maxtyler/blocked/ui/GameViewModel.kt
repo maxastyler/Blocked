@@ -2,12 +2,15 @@ package com.maxtyler.blocked.ui
 
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maxtyler.blocked.BuildConfig
 import com.maxtyler.blocked.database.Score
 import com.maxtyler.blocked.game.GameState
 import com.maxtyler.blocked.game.Rotation
 import com.maxtyler.blocked.game.Vec2
+import com.maxtyler.blocked.repository.PlayGamesRepository
 import com.maxtyler.blocked.repository.SaveRepository
 import com.maxtyler.blocked.repository.ScoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +24,7 @@ import javax.inject.Inject
 class GameViewModel @Inject constructor(
     private val scoreRepository: ScoreRepository,
     private val saveRepository: SaveRepository,
+    private val playGamesRepository: PlayGamesRepository,
     private val vibrator: Vibrator,
 ) :
     ViewModel() {
@@ -37,6 +41,7 @@ class GameViewModel @Inject constructor(
     val gameState = _gameState.asStateFlow()
 
     init {
+        Log.d("GAMES", "${playGamesRepository.playGamesAvailable}")
         viewModelScope.launch {
             lockTimer.events.collect { drop(false) }
         }
