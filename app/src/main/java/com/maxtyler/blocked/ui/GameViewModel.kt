@@ -24,7 +24,8 @@ class GameViewModel @Inject constructor(
     private val vibrator: Vibrator,
 ) :
     ViewModel() {
-    private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState(10, 30))
+    private var _gameState: MutableStateFlow<GameState> =
+        MutableStateFlow(GameState.fromWidthAndHeight(10, 30))
     private val lockTimer = Timer(viewModelScope)
     private val gravityTimer = Timer(viewModelScope)
     private val pauseTimer = Timer(viewModelScope)
@@ -32,6 +33,7 @@ class GameViewModel @Inject constructor(
     private var vibrationJob: Job? = null
     private val moveVibrationEffect = VibrationEffect.createOneShot(10L, 30)
     private val dropVibrationEffect = VibrationEffect.createOneShot(100L, 200)
+    private var scoreSubmitted = false
     val gameState = _gameState.asStateFlow()
 
     init {
@@ -48,23 +50,16 @@ class GameViewModel @Inject constructor(
             }
         }
         startGame()
-        viewModelScope.launch(context = Dispatchers.IO) {
-            try {
-                val state = saveRepository.getState()
-                state?.run {
-                    _gameState.value = this.pause()
-                }
-            } catch (e: NumberFormatException) {
-                saveRepository.clear()
-            }
-        }
+        loadSavedState()
         pause()
     }
 
     fun startGame(width: Int = 10, height: Int = 30) {
         lockTimer.stop()
-        _gameState.value = GameState(width = width, height = height).resetPosition()
+        _gameState.value =
+            GameState.fromWidthAndHeight(width = width, height = height).resetPosition()
         gravityTimer.start(_gameState.value.score.dropTime, true)
+        scoreSubmitted = false
     }
 
     fun restart() {
@@ -110,10 +105,7 @@ class GameViewModel @Inject constructor(
                 val (newState, locked) = when (val x = gameState.drop()) {
                     is GameState.Dropped -> Pair(x.gameState, false)
                     is GameState.AddPieceToBoardReturn -> {
-                        if (x.gameOver) {
-                            submitScore()
-                            clearSave()
-                        }
+                        if (x.gameOver) onGameOver()
                         Pair(x.gameState, true)
                     }
                 }
@@ -152,7 +144,9 @@ class GameViewModel @Inject constructor(
 
     fun hardDrop() {
         gameState.value.let { gameState ->
-            _gameState.value = gameState.hardDrop().gameState
+            val (newGameState, gameOver, _) = gameState.hardDrop()
+            if (gameOver) onGameOver()
+            _gameState.value = newGameState
             vibrate(dropVibrationEffect)
         }
     }
@@ -164,16 +158,44 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Do the things which need to happen on game over
+     */
+    fun onGameOver() {
+        submitScore()
+        clearSave()
+        lockTimer.stop()
+        gravityTimer.stop()
+    }
+
     fun getScores(): Flow<List<Score>> = scoreRepository.getScores(10).flowOn(Dispatchers.IO)
 
     fun submitScore() {
-        viewModelScope.launch(Dispatchers.IO) {
-            scoreRepository.addScore(
-                Score(
-                    score = gameState.value.score.score,
-                    date = Date.from(Instant.now())
-                )
-            )
+        saveScope.launch(Dispatchers.IO) {
+            supervisorScope {
+                if (!scoreSubmitted) {
+                    scoreSubmitted = true
+                    scoreRepository.addScore(
+                        Score(
+                            score = gameState.value.score.score,
+                            date = Date.from(Instant.now())
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadSavedState() {
+        viewModelScope.launch(context = Dispatchers.IO) {
+            try {
+                val state = saveRepository.getState()
+                state?.run {
+                    _gameState.value = this.pause()
+                }
+            } catch (e: NumberFormatException) {
+                saveRepository.clear()
+            }
         }
     }
 

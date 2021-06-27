@@ -4,7 +4,7 @@ import junit.framework.TestCase
 
 class GameStateTest : TestCase() {
 
-    val defaultGame = GameState(10, 20).tryPosition(Vec2(5, 5))!!
+    val defaultGame = GameState.fromWidthAndHeight(10, 20).tryPosition(Vec2(5, 5))!!
 
     fun testTryPosition() {
         assertNull(defaultGame.tryPosition(Vec2(-1, -1)))

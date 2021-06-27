@@ -64,7 +64,7 @@ class SaveConverters {
         strings?.split(",")?.let { it.map { Piece.valueOf(it) } }
 }
 
-@Database(entities = [Save::class], version = 1, exportSchema = true)
+@Database(entities = [Save::class], version = 2, exportSchema = true)
 @TypeConverters(SaveConverters::class)
 abstract class SaveDatabase : RoomDatabase() {
 

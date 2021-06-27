@@ -12,15 +12,20 @@ data class GameState(
     val holdUsed: Boolean = false,
 ) {
 
-    constructor(width: Int, height: Int) : this(
-        pieceState = PieceState(Piece.I, Vec2(0, 0), Rotation.None),
-        board = Board(width = width, height = height, blocks = mapOf()),
-        pieces = Piece.shuffled(),
-        held = null,
-        mode = Mode.Playing,
-        lockDelay = LockState(15, 15),
-        settings = GameSettings(22)
-    )
+    companion object {
+        fun fromWidthAndHeight(width: Int, height: Int): GameState {
+            val pieces = Piece.shuffled()
+            return GameState(
+                pieceState = PieceState(pieces.first(), Vec2(0, 0), Rotation.None),
+                board = Board(width = width, height = height, blocks = mapOf()),
+                pieces = pieces.drop(1),
+                held = null,
+                mode = Mode.Playing,
+                lockDelay = LockState(15, 15),
+                settings = GameSettings(22)
+            ).ensureEnoughPieces()
+        }
+    }
 
     enum class Mode {
         Playing,

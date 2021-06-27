@@ -18,6 +18,7 @@ data class Save(
     val levelStartScore: Int = 0,
     val position: Vec2,
     val rotation: Rotation,
+    val piece: Piece,
     val pieces: List<Piece>,
     val held: Piece?,
     val holdUsed: Boolean,
