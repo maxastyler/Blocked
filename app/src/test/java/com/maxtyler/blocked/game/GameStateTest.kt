@@ -67,8 +67,8 @@ class GameStateTest : TestCase() {
         val nextPieceState = defaultGame.getNextPiece()
         assertEquals(nextPieceState.pieceState.piece, defaultGame.pieces.first())
         assertEquals(
-            nextPieceState.pieceState.position.y,
-            nextPieceState.settings.startingHeight
+            if (nextPieceState.pieceState.piece == Piece.I) nextPieceState.settings.startingHeight - 1 else nextPieceState.settings.startingHeight,
+            nextPieceState.pieceState.position.y
         )
     }
 
