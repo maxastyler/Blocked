@@ -6,6 +6,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.games.Games
@@ -29,33 +30,23 @@ class PlayGamesRepository @Inject constructor(private val context: Context) {
             return _signInClient!!
         }
 
-    val playGamesAvailable: Int
-        get() = googleApiAvailability.isGooglePlayServicesAvailable(context)
+    val playGamesAvailable: Boolean
+        get() = (googleApiAvailability.isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS)
+
+    suspend fun revokeAccess() {
+        signInClient.revokeAccess().await()
+    }
 
     suspend fun signOut() {
-        signInClient.revokeAccess().await()
         signInClient.signOut().await()
     }
 
-    suspend fun silentSignIn(): GoogleSignInAccount? {
-        try {
-            val lastAccount = GoogleSignIn.getLastSignedInAccount(context)
-            if (lastAccount != null) {
-                return lastAccount
-            }
-            return signInClient.silentSignIn().await()
-        } catch (e: ApiException) {
-            return null
-        }
-    }
+    suspend fun silentSignIn(): GoogleSignInAccount? = signInClient.silentSignIn().await()
 
-    suspend fun signInIntent(): Intent {
-        return signInClient.signInIntent
-    }
+    suspend fun signInIntent(): Intent = signInClient.signInIntent
 
-    suspend fun getCurrentPlayer(account: GoogleSignInAccount): Player {
-        return Games.getPlayersClient(context, account).currentPlayer.await()
-    }
+    suspend fun getCurrentPlayer(account: GoogleSignInAccount): Player =
+        Games.getPlayersClient(context, account).currentPlayer.await()
 
     suspend fun getLeaderboard(account: GoogleSignInAccount): Intent =
         Games.getLeaderboardsClient(context, account)

@@ -1,11 +1,16 @@
 package com.maxtyler.blocked.ui
 
+import android.app.Activity
+import android.content.Intent
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
+import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maxtyler.blocked.BuildConfig
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.games.Player
 import com.maxtyler.blocked.database.Score
 import com.maxtyler.blocked.game.GameState
 import com.maxtyler.blocked.game.Rotation
@@ -16,6 +21,7 @@ import com.maxtyler.blocked.repository.ScoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.tasks.await
 import java.time.Instant
 import java.util.*
 import javax.inject.Inject
@@ -28,6 +34,9 @@ class GameViewModel @Inject constructor(
     private val vibrator: Vibrator,
 ) :
     ViewModel() {
+
+    // Game variables
+
     private var _gameState: MutableStateFlow<GameState> =
         MutableStateFlow(GameState.fromWidthAndHeight(10, 30))
     private val lockTimer = Timer(viewModelScope)
@@ -40,8 +49,41 @@ class GameViewModel @Inject constructor(
     private var scoreSubmitted = false
     val gameState = _gameState.asStateFlow()
 
+    private val _snackbarChannel: MutableSharedFlow<String> = MutableSharedFlow()
+    val snackbarChannel = _snackbarChannel.asSharedFlow()
+
+    // Login variables
+
+    private val playGamesAvailable = playGamesRepository.playGamesAvailable
+    private val _signInIntent: MutableStateFlow<Intent?> = MutableStateFlow(null)
+    private val _leaderboardIntent: MutableStateFlow<Intent?> = MutableStateFlow(null)
+    private val _account: MutableStateFlow<GoogleSignInAccount?> = MutableStateFlow(null)
+    private val _player: MutableStateFlow<Player?> = MutableStateFlow(null)
+
+    val signInIntent = _signInIntent.asStateFlow()
+    val leaderboardIntent = _leaderboardIntent.asStateFlow()
+    val player = _player.asStateFlow()
+
     init {
-        Log.d("GAMES", "${playGamesRepository.playGamesAvailable}")
+        if (playGamesAvailable) {
+            viewModelScope.launch {
+                _account.collect {
+                    when (it) {
+                        null -> {
+                            _player.value = null
+                            _leaderboardIntent.value = null
+                        }
+                        else -> {
+                            val player = playGamesRepository.getCurrentPlayer(it)
+                            _player.value = player
+                            _leaderboardIntent.value = playGamesRepository.getLeaderboard(it)
+                            _snackbarChannel.emit("Signed in as: ${player.name}")
+                        }
+                    }
+                }
+            }
+        }
+
         viewModelScope.launch {
             lockTimer.events.collect { drop(false) }
         }
@@ -168,6 +210,9 @@ class GameViewModel @Inject constructor(
      */
     fun onGameOver() {
         submitScore()
+        if (_account.value != null) {
+            submitScoreToPlayGames()
+        }
         clearSave()
         lockTimer.stop()
         gravityTimer.stop()
@@ -227,4 +272,86 @@ class GameViewModel @Inject constructor(
             }
         }
     }
+
+    fun silentSignIn() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val acc = try {
+                playGamesRepository.silentSignIn()
+            } catch (e: ApiException) {
+                null
+            }
+            when (acc) {
+                null -> getSignInIntent()
+                else -> setAccount(acc)
+            }
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                playGamesRepository.signOut()
+                _account.value = null
+                _snackbarChannel.emit("Signed out")
+            } catch (e: ApiException) {
+                _snackbarChannel.emit("There was an error while signing out")
+            }
+        }
+    }
+
+    fun setAccount(account: GoogleSignInAccount) {
+        _account.value = account
+    }
+
+    fun getSignInIntent() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _signInIntent.value = playGamesRepository.signInIntent()
+        }
+    }
+
+    fun getLeaderboardIntent() {
+
+    }
+
+    fun submitScoreToPlayGames() {
+        val acc = _account.value
+        when (acc) {
+            null -> viewModelScope.launch { _snackbarChannel.emit("Can't submit score; Not logged in!") }
+            else -> {
+                try {
+                    viewModelScope.launch {
+                        playGamesRepository.submitScore(
+                            acc,
+                            this@GameViewModel.gameState.value.score.score.toLong()
+                        )
+                    }
+                } catch (e: ApiException) {
+                    viewModelScope.launch {
+                        _snackbarChannel.emit("Can't submit score; API Error!")
+                    }
+                }
+            }
+        }
+    }
+
+    fun handleSignInActivityResult(response: ActivityResult) {
+        if (response.resultCode == Activity.RESULT_OK) {
+            try {
+                viewModelScope.launch(Dispatchers.IO) {
+                    _account.value =
+                        GoogleSignIn.getSignedInAccountFromIntent(response.data).await()
+                }
+            } catch (e: ApiException) {
+                viewModelScope.launch {
+                    _snackbarChannel.emit("Couldn't log in: API exception")
+                }
+                _account.value = null
+            }
+        } else {
+            viewModelScope.launch {
+                _snackbarChannel.emit("Bad result from login intent")
+            }
+        }
+    }
+
 }

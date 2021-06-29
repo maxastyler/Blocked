@@ -1,9 +1,12 @@
 package com.maxtyler.blocked.ui
 
+import android.app.Activity
 import android.content.Intent
 import android.util.Log
+import androidx.activity.result.ActivityResult
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
@@ -11,15 +14,17 @@ import com.google.android.gms.games.Player
 import com.maxtyler.blocked.repository.PlayGamesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class ScoreTestViewModel @Inject constructor(private val playGamesRepository: PlayGamesRepository) :
     ViewModel() {
+
+    private val _toastChannel: MutableSharedFlow<String> = MutableSharedFlow()
+    val toastChannel = _toastChannel.asSharedFlow()
 
     private val _intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
     val intent = _intent.asStateFlow()
@@ -41,10 +46,13 @@ class ScoreTestViewModel @Inject constructor(private val playGamesRepository: Pl
                     null -> {
                         _player.value = null
                         _leaderboardIntent.value = null
+                        getSignInIntent()
                     }
                     else -> {
-                        _player.value = playGamesRepository.getCurrentPlayer(it)
+                        val player = playGamesRepository.getCurrentPlayer(it)
+                        _player.value = player
                         _leaderboardIntent.value = playGamesRepository.getLeaderboard(it)
+                        _toastChannel.emit("Signed in as: ${player.name}")
                     }
                 }
             }
@@ -53,7 +61,12 @@ class ScoreTestViewModel @Inject constructor(private val playGamesRepository: Pl
 
     fun silentSignIn() {
         viewModelScope.launch(Dispatchers.IO) {
-            when (val acc = playGamesRepository.silentSignIn()) {
+            val acc = try {
+                playGamesRepository.silentSignIn()
+            } catch (e: ApiException) {
+                null
+            }
+            when (acc) {
                 null -> getSignInIntent()
                 else -> setAccount(acc)
             }
@@ -65,6 +78,7 @@ class ScoreTestViewModel @Inject constructor(private val playGamesRepository: Pl
             try {
                 playGamesRepository.signOut()
                 _account.value = null
+                _toastChannel.emit("Signed out")
             } catch (e: ApiException) {
                 Log.d(
                     "GAMES",
@@ -94,9 +108,32 @@ class ScoreTestViewModel @Inject constructor(private val playGamesRepository: Pl
 
     fun submitScore() {
         account.value?.let {
-            viewModelScope.launch {
-                playGamesRepository.submitScore(it, 8)
+            try {
+                viewModelScope.launch {
+                    playGamesRepository.submitScore(it, 8)
+                }
+            } catch (e: ApiException) {
+
             }
+        }
+    }
+
+    fun handleActivityResult(response: ActivityResult) {
+        if (response.resultCode == Activity.RESULT_OK) {
+            try {
+                viewModelScope.launch(Dispatchers.IO) {
+                    _account.value =
+                        GoogleSignIn.getSignedInAccountFromIntent(response.data).await()
+                }
+            } catch (e: ApiException) {
+                Log.d("GAMES", "Api exception ${e.status.statusCode}")
+                _account.value = null
+            }
+        } else {
+            Log.d(
+                "GAMES",
+                "Result not ok: ${ActivityResult.resultCodeToString(response.resultCode)}"
+            )
         }
     }
 }
