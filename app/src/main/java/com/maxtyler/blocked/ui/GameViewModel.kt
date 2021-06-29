@@ -343,7 +343,7 @@ class GameViewModel @Inject constructor(
                         }
                         _snackbarChannel.emit("Score submitted")
                     } catch (e: ApiException) {
-                        _snackbarChannel.emit("Can't submit score; API Error!")
+                        _snackbarChannel.emit("Can't submit score; Have you got a connection?")
                     }
                 }
             }
