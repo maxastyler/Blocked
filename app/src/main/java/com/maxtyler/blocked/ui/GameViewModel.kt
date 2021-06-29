@@ -54,18 +54,19 @@ class GameViewModel @Inject constructor(
 
     // Login variables
 
-    private val playGamesAvailable = playGamesRepository.playGamesAvailable
-    private val _signInIntent: MutableStateFlow<Intent?> = MutableStateFlow(null)
+    val playGamesAvailable = playGamesRepository.playGamesAvailable
     private val _leaderboardIntent: MutableStateFlow<Intent?> = MutableStateFlow(null)
     private val _account: MutableStateFlow<GoogleSignInAccount?> = MutableStateFlow(null)
     private val _player: MutableStateFlow<Player?> = MutableStateFlow(null)
 
-    val signInIntent = _signInIntent.asStateFlow()
+    val signInIntent: Intent
+        get() = playGamesRepository.signInIntent
     val leaderboardIntent = _leaderboardIntent.asStateFlow()
     val player = _player.asStateFlow()
 
     init {
         if (playGamesAvailable) {
+            silentSignIn()
             viewModelScope.launch {
                 _account.collect {
                     when (it) {
@@ -74,9 +75,9 @@ class GameViewModel @Inject constructor(
                             _leaderboardIntent.value = null
                         }
                         else -> {
+                            getLeaderboardIntent()
                             val player = playGamesRepository.getCurrentPlayer(it)
                             _player.value = player
-                            _leaderboardIntent.value = playGamesRepository.getLeaderboard(it)
                             _snackbarChannel.emit("Signed in as: ${player.name}")
                         }
                     }
@@ -218,7 +219,7 @@ class GameViewModel @Inject constructor(
         gravityTimer.stop()
     }
 
-    fun getScores(): Flow<List<Score>> = scoreRepository.getScores(10).flowOn(Dispatchers.IO)
+    fun getScores(): Flow<List<Score>> = scoreRepository.getScores(30).flowOn(Dispatchers.IO)
 
     fun submitScore() {
         saveScope.launch(Dispatchers.IO) {
@@ -274,15 +275,31 @@ class GameViewModel @Inject constructor(
     }
 
     fun silentSignIn() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch() {
             val acc = try {
-                playGamesRepository.silentSignIn()
+                withContext(Dispatchers.IO) {
+                    playGamesRepository.silentSignIn()
+                }
             } catch (e: ApiException) {
                 null
             }
             when (acc) {
-                null -> getSignInIntent()
+                null -> {
+                }
                 else -> setAccount(acc)
+            }
+        }
+    }
+
+    fun revokeAccess() {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    playGamesRepository.revokeAccess()
+                    signOut()
+                }
+            } catch (e: ApiException) {
+                _snackbarChannel.emit("Couldn't revoke access; API Error!")
             }
         }
     }
@@ -303,14 +320,12 @@ class GameViewModel @Inject constructor(
         _account.value = account
     }
 
-    fun getSignInIntent() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _signInIntent.value = playGamesRepository.signInIntent()
-        }
-    }
-
     fun getLeaderboardIntent() {
-
+        _account.value?.let {
+            viewModelScope.launch {
+                _leaderboardIntent.value = playGamesRepository.getLeaderboard(it)
+            }
+        }
     }
 
     fun submitScoreToPlayGames() {
@@ -318,15 +333,16 @@ class GameViewModel @Inject constructor(
         when (acc) {
             null -> viewModelScope.launch { _snackbarChannel.emit("Can't submit score; Not logged in!") }
             else -> {
-                try {
-                    viewModelScope.launch {
-                        playGamesRepository.submitScore(
-                            acc,
-                            this@GameViewModel.gameState.value.score.score.toLong()
-                        )
-                    }
-                } catch (e: ApiException) {
-                    viewModelScope.launch {
+                viewModelScope.launch {
+                    try {
+                        withContext(Dispatchers.IO) {
+                            playGamesRepository.submitScore(
+                                acc,
+                                this@GameViewModel.gameState.value.score.score.toLong()
+                            )
+                        }
+                        _snackbarChannel.emit("Score submitted")
+                    } catch (e: ApiException) {
                         _snackbarChannel.emit("Can't submit score; API Error!")
                     }
                 }
@@ -346,6 +362,10 @@ class GameViewModel @Inject constructor(
                     _snackbarChannel.emit("Couldn't log in: API exception")
                 }
                 _account.value = null
+            } catch (e: NullPointerException) {
+                viewModelScope.launch {
+                    _snackbarChannel.emit("Null response received")
+                }
             }
         } else {
             viewModelScope.launch {

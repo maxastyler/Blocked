@@ -92,7 +92,7 @@ class ScoreTestViewModel @Inject constructor(private val playGamesRepository: Pl
 
     fun getSignInIntent() {
         viewModelScope.launch(Dispatchers.IO) {
-            _intent.value = playGamesRepository.signInIntent()
+            _intent.value = playGamesRepository.signInIntent
         }
     }
 

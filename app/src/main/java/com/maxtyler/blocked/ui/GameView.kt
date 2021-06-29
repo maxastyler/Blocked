@@ -1,18 +1,20 @@
 package com.maxtyler.blocked.ui
 
+import android.text.format.DateFormat
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +29,7 @@ import com.maxtyler.blocked.game.GameState
 import com.maxtyler.blocked.game.Piece
 import com.maxtyler.blocked.game.Rotation
 import com.maxtyler.blocked.game.Vec2
+import kotlinx.coroutines.flow.collectLatest
 import java.time.Instant
 import java.util.*
 
@@ -39,7 +42,10 @@ fun ScoreView(score: Score) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text("Score: ${score.score}", modifier = Modifier.align(Alignment.CenterVertically))
-        Text(score.date.toString(), modifier = Modifier.align(Alignment.CenterVertically))
+        Text(
+            DateFormat.format("E d-M-y", score.date).toString(),
+            modifier = Modifier.align(Alignment.CenterVertically)
+        )
     }
 }
 
@@ -55,7 +61,10 @@ fun GameOverView(viewModel: GameViewModel) {
     val scores by viewModel.getScores().collectAsState(initial = listOf())
     val state by viewModel.gameState.collectAsState()
     Card(modifier = Modifier.padding(20.dp), elevation = 3.dp) {
-        Column {
+        Column(
+            modifier = Modifier.padding(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -82,6 +91,9 @@ fun GameOverView(viewModel: GameViewModel) {
                 items(scores) {
                     ScoreView(score = it)
                 }
+            }
+            if (viewModel.playGamesAvailable) {
+                PlayGamesView(viewModel)
             }
         }
     }
@@ -119,7 +131,21 @@ fun NextPieces(pieces: List<Piece>) {
 }
 
 @Composable
-fun GameView(viewModel: GameViewModel = viewModel()) {
+fun GameScaffold(viewModel: GameViewModel = viewModel()) {
+    val scaffoldState = rememberScaffoldState()
+    LaunchedEffect(key1 = Unit) {
+        viewModel.snackbarChannel.collectLatest {
+            scaffoldState.snackbarHostState.showSnackbar(it)
+        }
+    }
+    Scaffold(scaffoldState = scaffoldState,
+        snackbarHost = { SnackbarHost(hostState = it) }) {
+        GameView(viewModel)
+    }
+}
+
+@Composable
+fun GameView(viewModel: GameViewModel) {
     RunFunctionOnPauseAndResume(onPause = {
         viewModel.pause()
         if (viewModel.gameState.value.mode != GameState.Mode.GameOver) viewModel.saveState()
@@ -234,24 +260,81 @@ fun GameView(viewModel: GameViewModel = viewModel()) {
             }
             if (state.mode == GameState.Mode.Paused) {
                 Box(modifier = Modifier.align(Alignment.Center)) {
-                    PauseMenu(onResume = { viewModel.resume() },
-                        onNewGame = { viewModel.restart() })
+                    PauseMenu(
+                        onResume = { viewModel.resume() },
+                        onNewGame = { viewModel.restart() },
+                        viewModel
+                    )
                 }
             }
         }
     }
-
 }
 
 @Composable
-fun PauseMenu(onResume: () -> Unit, onNewGame: () -> Unit) {
-    Column {
-        Button(onClick = onResume, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            Text("Resume")
+fun PlayGamesView(
+    viewModel: GameViewModel
+) {
+    val player by viewModel.player.collectAsState()
+    val leaderboardIntent by viewModel.leaderboardIntent.collectAsState()
+    val signInIntentLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+            viewModel.handleSignInActivityResult(it)
         }
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = onNewGame, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            Text("New Game")
+    val leaderboardIntentLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+        }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        player?.let {
+            Text("Signed in as: ${it.displayName}")
+        }
+        Spacer(modifier = Modifier.height(3.dp))
+        if (leaderboardIntent != null) {
+            Button(onClick = { leaderboardIntentLauncher.launch(leaderboardIntent) }) {
+                Text("View online leaderboards")
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+        Row(horizontalArrangement = Arrangement.SpaceBetween) {
+            if (player == null) {
+                Button(onClick = { signInIntentLauncher.launch(viewModel.signInIntent) }) {
+                    Text("Log in")
+                }
+            } else {
+                Button(onClick = { viewModel.signOut() }) {
+                    Text("Sign out")
+                }
+                Spacer(modifier = Modifier.width(20.dp))
+                Button(onClick = { viewModel.revokeAccess() }) {
+                    Text("Revoke access")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PauseMenu(onResume: () -> Unit, onNewGame: () -> Unit, vm: GameViewModel) {
+
+    val player by vm.player.collectAsState()
+
+    Card(backgroundColor = Color.LightGray.copy(alpha = 0.5F)) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Button(onClick = onResume, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text("Resume")
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(onClick = onNewGame, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text("New Game")
+            }
+            Spacer(modifier = Modifier.height(30.dp))
+            if (vm.playGamesAvailable) {
+                PlayGamesView(vm)
+            }
         }
     }
 }

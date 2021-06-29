@@ -30,6 +30,9 @@ class PlayGamesRepository @Inject constructor(private val context: Context) {
             return _signInClient!!
         }
 
+    val signInIntent: Intent
+        get() = signInClient.signInIntent
+
     val playGamesAvailable: Boolean
         get() = (googleApiAvailability.isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS)
 
@@ -42,8 +45,6 @@ class PlayGamesRepository @Inject constructor(private val context: Context) {
     }
 
     suspend fun silentSignIn(): GoogleSignInAccount? = signInClient.silentSignIn().await()
-
-    suspend fun signInIntent(): Intent = signInClient.signInIntent
 
     suspend fun getCurrentPlayer(account: GoogleSignInAccount): Player =
         Games.getPlayersClient(context, account).currentPlayer.await()

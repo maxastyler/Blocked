@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
+import com.maxtyler.blocked.ui.GameScaffold
 import com.maxtyler.blocked.ui.GameView
 import com.maxtyler.blocked.ui.ScoreTestMain
 import com.maxtyler.blocked.ui.theme.BlockedTheme
@@ -19,14 +20,9 @@ class MainActivity : ComponentActivity() {
             BlockedTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    ScoreTestMain()
+                    GameScaffold()
                 }
             }
         }
     }
-}
-
-@Composable
-fun Main() {
-    GameView()
 }
