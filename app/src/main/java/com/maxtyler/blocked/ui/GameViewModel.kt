@@ -78,7 +78,7 @@ class GameViewModel @Inject constructor(
                             getLeaderboardIntent()
                             val player = playGamesRepository.getCurrentPlayer(it)
                             _player.value = player
-                            _snackbarChannel.emit("Signed in as: ${player.name}")
+                            _snackbarChannel.emit("Signed in as: ${player.displayName}")
                         }
                     }
                 }
