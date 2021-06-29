@@ -299,7 +299,7 @@ class GameViewModel @Inject constructor(
                     signOut()
                 }
             } catch (e: ApiException) {
-                _snackbarChannel.emit("Couldn't revoke access; API Error!")
+                _snackbarChannel.emit("Couldn't revoke access; API Error ${e.status.statusCode}")
             }
         }
     }
@@ -343,7 +343,7 @@ class GameViewModel @Inject constructor(
                         }
                         _snackbarChannel.emit("Score submitted")
                     } catch (e: ApiException) {
-                        _snackbarChannel.emit("Can't submit score; Have you got a connection?")
+                        _snackbarChannel.emit("Can't submit score; Have you got a connection? (API code ${e.status.statusCode})")
                     }
                 }
             }
@@ -359,7 +359,7 @@ class GameViewModel @Inject constructor(
                 }
             } catch (e: ApiException) {
                 viewModelScope.launch {
-                    _snackbarChannel.emit("Couldn't log in: API exception")
+                    _snackbarChannel.emit("Couldn't log in: API exception ${e.status.statusCode}")
                 }
                 _account.value = null
             } catch (e: NullPointerException) {
@@ -369,7 +369,7 @@ class GameViewModel @Inject constructor(
             }
         } else {
             viewModelScope.launch {
-                _snackbarChannel.emit("Bad result from login intent")
+                _snackbarChannel.emit("Bad result from login intent: ${ActivityResult.resultCodeToString(response.resultCode)}")
             }
         }
     }
