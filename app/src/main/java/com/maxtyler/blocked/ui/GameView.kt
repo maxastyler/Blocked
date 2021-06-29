@@ -85,15 +85,16 @@ fun GameOverView(viewModel: GameViewModel) {
             ScoreView(score = Score(score = state.score.score, date = Date.from(Instant.now())))
 
             Spacer(modifier = Modifier.height(10.dp))
+            if (viewModel.playGamesAvailable) {
+                PlayGamesView(viewModel)
+                Spacer(modifier = Modifier.height(10.dp))
+            }
             Text(text = "High Scores:")
             Spacer(modifier = Modifier.height(5.dp))
             LazyColumn(state = listState) {
                 items(scores) {
                     ScoreView(score = it)
                 }
-            }
-            if (viewModel.playGamesAvailable) {
-                PlayGamesView(viewModel)
             }
         }
     }
@@ -316,8 +317,6 @@ fun PlayGamesView(
 
 @Composable
 fun PauseMenu(onResume: () -> Unit, onNewGame: () -> Unit, vm: GameViewModel) {
-
-    val player by vm.player.collectAsState()
 
     Card(backgroundColor = Color.LightGray.copy(alpha = 0.5F)) {
         Column(
