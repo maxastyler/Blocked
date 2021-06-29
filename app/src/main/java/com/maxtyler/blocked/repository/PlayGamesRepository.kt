@@ -8,7 +8,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.games.Games
 import com.google.android.gms.games.Player
 import com.maxtyler.blocked.R

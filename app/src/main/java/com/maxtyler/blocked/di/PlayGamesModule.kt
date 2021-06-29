@@ -14,5 +14,6 @@ import javax.inject.Singleton
 object PlayGamesModule {
     @Provides
     @Singleton
-    fun providePlayGamesRepository(@ApplicationContext context: Context): PlayGamesRepository = PlayGamesRepository(context)
+    fun providePlayGamesRepository(@ApplicationContext context: Context): PlayGamesRepository =
+        PlayGamesRepository(context)
 }
