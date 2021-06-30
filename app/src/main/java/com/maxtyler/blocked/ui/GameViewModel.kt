@@ -147,7 +147,8 @@ class GameViewModel @Inject constructor(
      * Drop the piece, starting a lock timer if the piece was gravity dropped
      * @param computerDrop Whether the piece was gravity-dropped or not
      */
-    fun drop(computerDrop: Boolean) {
+    fun drop(computerDrop: Boolean): Boolean {
+        var wasLocked = false
         _gameState.value.let { gameState ->
             if (gameState.mode == GameState.Mode.Playing) {
                 val (newState, locked) = when (val x = gameState.drop()) {
@@ -174,8 +175,10 @@ class GameViewModel @Inject constructor(
                     lockTimer.stop()
                     _gameState.value = newState
                 }
+                wasLocked = locked
             }
         }
+        return wasLocked
     }
 
     fun pause() {

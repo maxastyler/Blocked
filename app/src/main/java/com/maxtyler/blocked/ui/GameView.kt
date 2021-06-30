@@ -195,7 +195,7 @@ fun GameView(viewModel: GameViewModel) {
                                         while (offset.y > dragAmount) {
                                             dropping = true
                                             offset = offset.copy(y = offset.y - dragAmount)
-                                            viewModel.drop(false)
+                                            if (viewModel.drop(false)) alreadyDropped = true
                                         }
                                         if (offset.y < -dropAmount) {
                                             viewModel.hold()
