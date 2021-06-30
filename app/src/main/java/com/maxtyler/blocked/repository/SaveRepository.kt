@@ -1,12 +1,13 @@
 package com.maxtyler.blocked.repository
 
+import com.maxtyler.blocked.database.BlockedDatabase
 import com.maxtyler.blocked.database.Save
 import com.maxtyler.blocked.database.SaveDatabase
 import com.maxtyler.blocked.game.GameState
 import com.maxtyler.blocked.game.Score
 import javax.inject.Inject
 
-class SaveRepository @Inject constructor(private val saveDatabase: SaveDatabase) {
+class SaveRepository @Inject constructor(private val saveDatabase: BlockedDatabase) {
     suspend fun clear() {
         saveDatabase.saveDao().delete()
     }

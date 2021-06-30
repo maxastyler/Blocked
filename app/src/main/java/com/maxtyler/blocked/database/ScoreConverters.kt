@@ -17,10 +17,3 @@ class ScoreConverters {
         return date?.time
     }
 }
-
-@Database(entities = [Score::class], version = 1, exportSchema = true)
-@TypeConverters(ScoreConverters::class)
-abstract class ScoreDatabase : RoomDatabase() {
-
-    abstract fun scoreDao(): ScoreDao
-}

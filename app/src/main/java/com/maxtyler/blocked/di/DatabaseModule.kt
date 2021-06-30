@@ -2,6 +2,7 @@ package com.maxtyler.blocked.di
 
 import android.content.Context
 import androidx.room.Room
+import com.maxtyler.blocked.database.BlockedDatabase
 import com.maxtyler.blocked.database.SaveDatabase
 import com.maxtyler.blocked.database.ScoreDatabase
 import dagger.Module
@@ -14,19 +15,14 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-    @Provides
-    @Singleton
-    fun provideScoreDatabase(@ApplicationContext application: Context): ScoreDatabase {
-        return Room.databaseBuilder(
-            application, ScoreDatabase::class.java, "score_database"
-        ).fallbackToDestructiveMigration().build()
-    }
 
     @Provides
     @Singleton
-    fun provideSaveDatabase(@ApplicationContext application: Context): SaveDatabase {
+    fun provideBlockedDatabase(@ApplicationContext application: Context): BlockedDatabase {
         return Room.databaseBuilder(
-            application, SaveDatabase::class.java, "save_database"
-        ).fallbackToDestructiveMigration().build()
+            application, BlockedDatabase::class.java, "blocked_database"
+        ).enableMultiInstanceInvalidation()
+            .fallbackToDestructiveMigration()
+            .build()
     }
 }

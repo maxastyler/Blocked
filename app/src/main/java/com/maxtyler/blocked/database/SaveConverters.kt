@@ -63,9 +63,3 @@ class SaveConverters {
     fun stringsToPieces(strings: String?): List<Piece>? =
         strings?.split(",")?.let { it.map { Piece.valueOf(it) } }
 }
-
-@Database(entities = [Save::class], version = 2, exportSchema = true)
-@TypeConverters(SaveConverters::class)
-abstract class SaveDatabase : RoomDatabase() {
-    abstract fun saveDao(): SaveDao
-}
