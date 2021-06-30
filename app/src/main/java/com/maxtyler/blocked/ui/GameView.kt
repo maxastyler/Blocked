@@ -98,7 +98,7 @@ fun GameOverView(viewModel: GameViewModel) {
 }
 
 @Composable
-fun HeldPiece(piece: Piece?) {
+fun HeldPiece(piece: Piece?, colourSettings: ColourSettings) {
     Column {
         Text("Held:", modifier = Modifier.align(Alignment.CenterHorizontally))
         Box(
@@ -107,14 +107,14 @@ fun HeldPiece(piece: Piece?) {
                 .align(Alignment.CenterHorizontally)
         ) {
             piece?.let {
-                DrawPiece(piece = it)
+                DrawPiece(piece = it, colourSettings)
             }
         }
     }
 }
 
 @Composable
-fun NextPieces(pieces: List<Piece>) {
+fun NextPieces(pieces: List<Piece>, colourSettings: ColourSettings) {
     Column {
         Text("Next:", modifier = Modifier.align(Alignment.CenterHorizontally))
         Spacer(modifier = Modifier.height(10.dp))
@@ -123,7 +123,7 @@ fun NextPieces(pieces: List<Piece>) {
                 modifier = Modifier
                     .size(50.dp)
                     .align(Alignment.CenterHorizontally)
-            ) { DrawPiece(piece = it) }
+            ) { DrawPiece(piece = it, colourSettings) }
         }
     }
 }
@@ -155,6 +155,7 @@ fun GameView(viewModel: GameViewModel) {
     val dragAmount = 50F
     val dropAmount = 200F
     val hardDropAmount = 130F
+    val colourSettings = ColourSettings()
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.mode == GameState.Mode.GameOver) {
@@ -248,12 +249,17 @@ fun GameView(viewModel: GameViewModel) {
                                 .fillMaxWidth(0.15F)
                                 .padding(4.dp)
                         ) {
-                            HeldPiece(piece = state.held)
+                            HeldPiece(piece = state.held, colourSettings)
                             Spacer(modifier = Modifier.height(20.dp))
-                            NextPieces(pieces = state.pieces.take(6))
+                            NextPieces(pieces = state.pieces.take(6), colourSettings)
                         }
                     }
-                    Box(modifier = Modifier.align(Alignment.CenterVertically)) { BoardView(state) }
+                    Box(modifier = Modifier.align(Alignment.CenterVertically)) {
+                        BoardView(
+                            state,
+                            colourSettings
+                        )
+                    }
                 }
             }
             if (state.mode == GameState.Mode.Paused) {

@@ -67,6 +67,5 @@ class SaveConverters {
 @Database(entities = [Save::class], version = 2, exportSchema = true)
 @TypeConverters(SaveConverters::class)
 abstract class SaveDatabase : RoomDatabase() {
-
     abstract fun saveDao(): SaveDao
 }

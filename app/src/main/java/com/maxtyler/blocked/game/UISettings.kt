@@ -1,5 +1,6 @@
 package com.maxtyler.blocked.game
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -10,4 +11,5 @@ data class UISettings(
     val holdLimit: Float = 200F,
     val hardDropLimit: Float = 130F,
     val dropHorizontalMultiplier: Float = 3F,
+    @Embedded val colourSettings: ColourSettings = ColourSettings(),
 )

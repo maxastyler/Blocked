@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.maxtyler.blocked.game.*
-import com.maxtyler.blocked.ui.ColourBlock
 
 @Composable
 fun BoardView(gameState: GameState, colourSettings: ColourSettings) {
@@ -40,13 +39,13 @@ fun BoardView(gameState: GameState, colourSettings: ColourSettings) {
         board.blocks.forEach { (pos, block) ->
             val xpos = blockLength * pos.x
             val ypos = innerHeight - blockLength * pos.y
-            drawBlock(Offset(xpos, ypos), blockSize, ColourBlock.toColour(block))
+            drawBlock(Offset(xpos, ypos), blockSize, colourSettings.pieceColour(block))
         }
 
         gameState.getShadow().forEach { pos ->
             val xpos = blockLength * pos.x
             val ypos = innerHeight - blockLength * pos.y
-            drawBlock(Offset(xpos, ypos), blockSize, Color.LightGray)
+            drawBlock(Offset(xpos, ypos), blockSize, colourSettings.shadowColour)
         }
 
         gameState.pieceState.coordinates.forEach { pos ->
@@ -56,7 +55,7 @@ fun BoardView(gameState: GameState, colourSettings: ColourSettings) {
                 drawBlock(
                     Offset(xpos, ypos),
                     blockSize,
-                    ColourBlock.toColour(gameState.pieceState.piece)
+                    colourSettings.pieceColour(gameState.pieceState.piece)
                 )
             }
         }
@@ -68,7 +67,7 @@ fun DrawScope.drawBlock(offset: Offset, size: Size, color: Color) {
 }
 
 @Composable
-fun DrawPiece(piece: Piece) {
+fun DrawPiece(piece: Piece, colourSettings: ColourSettings) {
     val coords = piece.getCoordinates(Rotation.None)
     val minX = coords.minOfOrNull { it.x }!!
     val minY = coords.minOfOrNull { it.y }!!
@@ -81,7 +80,7 @@ fun DrawPiece(piece: Piece) {
                 if (coords.contains(Vec2(x + minX, y + minY))) {
                     val offset = Offset(x * blockX, (3 - y) * blockY)
                     drawRect(
-                        color = ColourBlock.toColour(piece),
+                        color = colourSettings.pieceColour(piece),
                         topLeft = offset,
                         size = Size(blockX, -blockY)
                     )
@@ -98,7 +97,7 @@ fun DrawPreview() {
         listOf(Piece.T, Piece.Z, Piece.O, Piece.S, Piece.L, Piece.I, Piece.J).forEach {
             Spacer(modifier = Modifier.height(2.dp))
             Box(modifier = Modifier.size(10.dp)) {
-                DrawPiece(piece = it)
+                DrawPiece(piece = it, ColourSettings())
             }
         }
     }
