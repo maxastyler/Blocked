@@ -10,14 +10,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.maxtyler.blocked.game.GameState
-import com.maxtyler.blocked.game.Piece
-import com.maxtyler.blocked.game.Rotation
-import com.maxtyler.blocked.game.Vec2
+import com.maxtyler.blocked.game.*
 import com.maxtyler.blocked.ui.ColourBlock
 
 @Composable
-fun BoardView(gameState: GameState) {
+fun BoardView(gameState: GameState, colourSettings: ColourSettings) {
     val board = gameState.board
     Canvas(modifier = Modifier.fillMaxSize()) {
 
@@ -30,7 +27,7 @@ fun BoardView(gameState: GameState) {
         val innerWidth = blockLength * board.width
         val innerHeight = blockLength * renderHeight
 
-        drawRect(Color(240, 240, 240), size = Size(innerWidth, innerHeight))
+        drawRect(colourSettings.backgroundColour, size = Size(innerWidth, innerHeight))
 
         (0..board.width).forEach {
             val p = it.toFloat() * blockLength
