@@ -1,5 +1,7 @@
 package com.maxtyler.blocked.game
 
+import androidx.compose.ui.graphics.Color
+
 /**
  * An enum class containing the different possible pieces
  */
@@ -210,6 +212,16 @@ enum class Piece {
             T -> 2
             Z -> 2
         }
+
+    fun colour(colourSettings: ColourSettings): Color = when (this) {
+        I -> colourSettings.IColour
+        J -> colourSettings.JColour
+        L -> colourSettings.LColour
+        Z -> colourSettings.ZColour
+        S -> colourSettings.SColour
+        T -> colourSettings.TColour
+        O -> colourSettings.OColour
+    }
 
     companion object {
         /**

@@ -14,10 +14,12 @@ import com.google.android.gms.games.Player
 import com.maxtyler.blocked.database.Score
 import com.maxtyler.blocked.game.GameState
 import com.maxtyler.blocked.game.Rotation
+import com.maxtyler.blocked.game.UISettings
 import com.maxtyler.blocked.game.Vec2
 import com.maxtyler.blocked.repository.PlayGamesRepository
 import com.maxtyler.blocked.repository.SaveRepository
 import com.maxtyler.blocked.repository.ScoreRepository
+import com.maxtyler.blocked.repository.UISettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -31,6 +33,7 @@ class GameViewModel @Inject constructor(
     private val scoreRepository: ScoreRepository,
     private val saveRepository: SaveRepository,
     private val playGamesRepository: PlayGamesRepository,
+    private val uiSettingsRepository: UISettingsRepository,
     private val vibrator: Vibrator,
 ) :
     ViewModel() {
@@ -44,13 +47,15 @@ class GameViewModel @Inject constructor(
     private val pauseTimer = Timer(viewModelScope)
     private val saveScope = CoroutineScope(viewModelScope.coroutineContext)
     private var vibrationJob: Job? = null
-    private val moveVibrationEffect = VibrationEffect.createOneShot(10L, 30)
-    private val dropVibrationEffect = VibrationEffect.createOneShot(100L, 200)
+    private var dropVibrationEffect = VibrationEffect.createOneShot(10L, 30)
+    private var hardDropVibrationEffect = VibrationEffect.createOneShot(100L, 200)
     private var scoreSubmitted = false
     val gameState = _gameState.asStateFlow()
 
     private val _snackbarChannel: MutableSharedFlow<String> = MutableSharedFlow()
     val snackbarChannel = _snackbarChannel.asSharedFlow()
+
+    val uiSettings: Flow<UISettings> = uiSettingsRepository.getUISettings().flowOn(Dispatchers.IO)
 
     // Login variables
 
@@ -97,6 +102,18 @@ class GameViewModel @Inject constructor(
                 _gameState.value = _gameState.value.resume()
             }
         }
+
+        viewModelScope.launch {
+            uiSettings.collectLatest {
+                dropVibrationEffect =
+                    VibrationEffect.createOneShot(it.dropVibrationTime, it.dropVibrationStrength)
+                hardDropVibrationEffect = VibrationEffect.createOneShot(
+                    it.hardDropVibrationTime,
+                    it.hardDropVibrationStrength
+                )
+            }
+        }
+
         startGame()
         loadSavedState()
         pause()
@@ -133,7 +150,7 @@ class GameViewModel @Inject constructor(
     fun move(direction: Vec2) {
         gameState.value.tryPosition(gameState.value.pieceState.position + direction)
             ?.run {
-                vibrate(moveVibrationEffect)
+                vibrate(dropVibrationEffect)
                 val newState = this.useLockMovement()
                 _gameState.value = newState
 
@@ -160,7 +177,7 @@ class GameViewModel @Inject constructor(
                 }
 
                 // do the drop vibration if it was dropped by a player
-                if (!computerDrop) vibrate(moveVibrationEffect)
+                if (!computerDrop) vibrate(dropVibrationEffect)
 
                 if (locked) {
                     if (computerDrop) {
@@ -198,13 +215,13 @@ class GameViewModel @Inject constructor(
             val (newGameState, gameOver, _) = gameState.hardDrop()
             if (gameOver) onGameOver()
             _gameState.value = newGameState
-            vibrate(dropVibrationEffect)
+            vibrate(hardDropVibrationEffect)
         }
     }
 
     fun hold() {
         gameState.value.let { gameState ->
-            if (!gameState.holdUsed) vibrate(moveVibrationEffect)
+            if (!gameState.holdUsed) vibrate(dropVibrationEffect)
             _gameState.value = gameState.holdPiece().first
         }
     }
@@ -372,7 +389,13 @@ class GameViewModel @Inject constructor(
             }
         } else {
             viewModelScope.launch {
-                _snackbarChannel.emit("Bad result from login intent: ${ActivityResult.resultCodeToString(response.resultCode)}")
+                _snackbarChannel.emit(
+                    "Bad result from login intent: ${
+                        ActivityResult.resultCodeToString(
+                            response.resultCode
+                        )
+                    }"
+                )
             }
         }
     }

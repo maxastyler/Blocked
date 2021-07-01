@@ -2,14 +2,16 @@ package com.maxtyler.blocked.repository
 
 import com.maxtyler.blocked.database.BlockedDatabase
 import com.maxtyler.blocked.database.Save
-import com.maxtyler.blocked.database.SaveDatabase
+import com.maxtyler.blocked.database.SaveDao
 import com.maxtyler.blocked.game.GameState
 import com.maxtyler.blocked.game.Score
 import javax.inject.Inject
 
 class SaveRepository @Inject constructor(private val saveDatabase: BlockedDatabase) {
+    private val saveDao: SaveDao = saveDatabase.saveDao()
+
     suspend fun clear() {
-        saveDatabase.saveDao().delete()
+        saveDao.delete()
     }
 
     suspend fun saveState(state: GameState) {
@@ -28,10 +30,10 @@ class SaveRepository @Inject constructor(private val saveDatabase: BlockedDataba
             held = state.held,
             holdUsed = state.holdUsed
         )
-        saveDatabase.saveDao().insert(save)
+        saveDao.insert(save)
     }
 
-    suspend fun getState(): GameState? = saveDatabase.saveDao().get()?.let {
+    suspend fun getState(): GameState? = saveDao.get()?.let {
         val state = GameState.fromWidthAndHeight(width = it.width, height = it.height)
         state.copy(
             board = state.board.copy(blocks = it.board),

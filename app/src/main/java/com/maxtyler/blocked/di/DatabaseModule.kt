@@ -3,8 +3,6 @@ package com.maxtyler.blocked.di
 import android.content.Context
 import androidx.room.Room
 import com.maxtyler.blocked.database.BlockedDatabase
-import com.maxtyler.blocked.database.SaveDatabase
-import com.maxtyler.blocked.database.ScoreDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

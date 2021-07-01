@@ -7,14 +7,14 @@ import com.maxtyler.blocked.game.ColourSettings
 import com.maxtyler.blocked.game.UISettings
 
 @Database(
-    entities = [UISettings::class, Save::class, Score::class, ColourSettings::class],
-    version = 1,
+    entities = [Settings::class, Save::class, Score::class, Colours::class],
+    version = 5,
     exportSchema = true
 )
-@TypeConverters(SaveConverters::class, ScoreConverters::class, ColourSettingsConverters::class)
+@TypeConverters(SaveConverters::class)
 abstract class BlockedDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
     abstract fun saveDao(): SaveDao
     abstract fun scoreDao(): ScoreDao
-    abstract fun colourSettingsDao(): ColourSettingsDao
+    abstract fun coloursDao(): ColoursDao
 }

@@ -152,10 +152,8 @@ fun GameView(viewModel: GameViewModel) {
     var offset by remember { mutableStateOf(Offset(0F, 0F)) }
     var dropping by remember { mutableStateOf(false) }
     var alreadyDropped by remember { mutableStateOf(false) }
-    val dragAmount = 50F
-    val dropAmount = 200F
-    val hardDropAmount = 130F
-    val colourSettings = ColourSettings()
+    val settings by viewModel.uiSettings.collectAsState(initial = UISettings())
+    val colourSettings = settings.colourSettings.second
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.mode == GameState.Mode.GameOver) {
@@ -174,13 +172,14 @@ fun GameView(viewModel: GameViewModel) {
                         onDrag = { change, amount ->
                             if (state.mode == GameState.Mode.Playing) {
                                 offset += amount
-                                if (amount.y > hardDropAmount) {
+                                if (amount.y > settings.hardDropLimit) {
                                     if (!alreadyDropped) {
                                         viewModel.hardDrop()
                                         alreadyDropped = true
                                     }
                                 } else {
-                                    val xDragAmount = if (dropping) 3 * dragAmount else dragAmount
+                                    val xDragAmount =
+                                        if (dropping) settings.dropHorizontalMultiplier * settings.dragLimit else settings.dragLimit
                                     while (offset.x > xDragAmount) {
                                         offset = offset.copy(x = offset.x - xDragAmount)
                                         viewModel.move(Vec2(1, 0))
@@ -190,12 +189,12 @@ fun GameView(viewModel: GameViewModel) {
                                         viewModel.move(Vec2(-1, 0))
                                     }
                                     if (!alreadyDropped) {
-                                        while (offset.y > dragAmount) {
+                                        while (offset.y > settings.dragLimit) {
                                             dropping = true
-                                            offset = offset.copy(y = offset.y - dragAmount)
+                                            offset = offset.copy(y = offset.y - settings.dragLimit)
                                             if (viewModel.drop(false)) alreadyDropped = true
                                         }
-                                        if (offset.y < -dropAmount) {
+                                        if (offset.y < -settings.holdLimit) {
                                             viewModel.hold()
                                             offset = offset.copy(y = 0F)
                                         }
