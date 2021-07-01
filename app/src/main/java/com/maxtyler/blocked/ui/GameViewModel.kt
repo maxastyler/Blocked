@@ -106,10 +106,13 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch {
             uiSettings.collectLatest {
                 dropVibrationEffect =
-                    VibrationEffect.createOneShot(it.dropVibrationTime, it.dropVibrationStrength)
+                    VibrationEffect.createOneShot(
+                        it.settings["dropVibrationTime"]!!.value as Long,
+                        it.settings["dropVibrationStrength"]!!.value as Int
+                    )
                 hardDropVibrationEffect = VibrationEffect.createOneShot(
-                    it.hardDropVibrationTime,
-                    it.hardDropVibrationStrength
+                    it.settings["hardDropVibrationTime"]!!.value as Long,
+                    it.settings["hardDropVibrationStrength"]!!.value as Int
                 )
             }
         }

@@ -4,7 +4,10 @@ import androidx.room.Embedded
 import androidx.room.Relation
 
 data class SettingsAndColours(
-    @Embedded val settings: Settings,
-    @Relation(parentColumn = "coloursId", entityColumn = "coloursId")
-    val colours: Colours?
+
+    @Embedded val colourChoice: ColourChoice,
+    @Relation(parentColumn = "colourSettingsId", entityColumn = "coloursId")
+    val colours: Colours?,
+    @Relation(parentColumn = "id", entityColumn = "parentKey")
+    val settings: List<Setting>,
 )

@@ -3,12 +3,10 @@ package com.maxtyler.blocked.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.maxtyler.blocked.game.ColourSettings
-import com.maxtyler.blocked.game.UISettings
 
 @Database(
-    entities = [Settings::class, Save::class, Score::class, Colours::class],
-    version = 5,
+    entities = [Settings::class, Save::class, Score::class, Colours::class, ColourChoice::class, Setting::class],
+    version = 6,
     exportSchema = true
 )
 @TypeConverters(SaveConverters::class)
