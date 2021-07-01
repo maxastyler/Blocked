@@ -13,28 +13,39 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.maxtyler.blocked.game.ColourSettings
+import com.maxtyler.blocked.game.SettingType
 import com.maxtyler.blocked.game.UISettings
+
+typealias TempUiSettings = Pair<Map<String, Pair<SettingType<out Number>, String>>, Pair<Int?, ColourSettings>>
 
 @Composable
 fun SettingsView(viewModel: SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
-    val uiSettings by viewModel.uiSettings.collectAsState()
-    var tempUiSettings by remember(uiSettings) { mutableStateOf(uiSettings) }
+    val uiSettings by viewModel.uiSettingsFlow.collectAsState(UISettings())
+    var tempUiSettings by remember(uiSettings) {
+        mutableStateOf(
+            Pair(
+                uiSettings.settings.map { (k, v) -> k to Pair(v, v.value.toString()) }.toMap(),
+                uiSettings.colourSettings
+            )
+        )
+    }
 
-    val colourSettings by viewModel.colourSettings.collectAsState()
+    val colourSettings by viewModel.colourSettingsFlow.collectAsState(listOf())
 
     val scrollState = rememberLazyListState()
 
     Box() {
         Column() {
             UISettingsView(
-                uiSettings = tempUiSettings,
-                { tempUiSettings = it },
-                { viewModel.writeUiSettings(it) })
+                tempUiSettings = tempUiSettings,
+                { tempUiSettings = tempUiSettings.copy() },
+                { viewModel.writeUiSettings({it}) })
             Button(onClick = { viewModel.newColourSettings() }) {
                 Text("New colour settings")
             }
@@ -52,18 +63,23 @@ fun SettingsView(viewModel: SettingsViewModel = androidx.lifecycle.viewmodel.com
 
 @Composable
 fun UISettingsView(
-    uiSettings: UISettings,
-    onUpdate: (UISettings) -> Unit = {},
-    onSubmit: (UISettings) -> Unit = {}
+    tempUiSettings: TempUiSettings,
+    onUpdate: (TempUiSettings) -> Unit = {},
+    onSubmit: () -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
     Column(Modifier.scrollable(scrollState, orientation = Orientation.Vertical)) {
-        SubmittableNumInput(
-            value = uiSettings.toString(),
-            onUpdate = { },
-            onRevert = {},
-        )
-        Button(onClick = { onSubmit(uiSettings) }) {
+        tempUiSettings.first.forEach { (k, v) ->
+            Row() {
+                Text(
+                    v.first.name,
+                    softWrap = true,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+                SubmittableNumInput(value = v.second, onUpdate = { s -> })
+            }
+        }
+        Button(onClick = onSubmit) {
             Text("Save values")
         }
     }
@@ -84,7 +100,7 @@ fun SubmittableNumInput(
             onValueChange = { onUpdate(it) }
         )
         Button(onClick = onRevert) {
-            Text("Revert")
+            Text("R")
         }
     }
 }
