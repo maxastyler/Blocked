@@ -1,14 +1,22 @@
 package com.maxtyler.blocked.game
 
 data class UISettings(
-    val settings: Map<String, SettingType<out Number>> = defaultSettings,
+    val settings: Map<String, SettingType<out Any>> = defaultSettings,
     val colourSettings: Pair<Int?, ColourSettings> = Pair(
         null, ColourSettings()
     ),
 ) {
+
+    fun mergeSettings(newSettings: Map<String, SettingType<out Any>>): UISettings =
+        this.copy(settings = this.settings + newSettings)
+
     companion object {
+
+        fun verifyString(settingName: String, settingValue: String): SettingType<out Any>? =
+            UISettings.defaultSettings[settingName]?.verifyString(settingValue)
+
         fun fromValuesAndDefaults(
-            values: Map<String, SettingType<out Number>>,
+            values: Map<String, SettingType<out Any>>,
             colourSettings: Pair<Int?, ColourSettings> = Pair(
                 null,
                 ColourSettings()
@@ -26,7 +34,7 @@ data class UISettings(
             "hardDropVibrationStrength" to Triple(200, 0, 255),
         )
 
-        val defaultSettings: Map<String, SettingType<out Number>> = defaults.map { x ->
+        val defaultSettings: Map<String, SettingType<out Any>> = defaults.map { x ->
             x.key to (when (x.value.first) {
                 is Float -> SettingType.FloatSetting(
                     x.key,

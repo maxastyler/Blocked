@@ -1,5 +1,6 @@
 package com.maxtyler.blocked.repository
 
+import android.util.Log
 import com.maxtyler.blocked.database.*
 import com.maxtyler.blocked.game.ColourSettings
 import com.maxtyler.blocked.game.SettingType
@@ -11,8 +12,8 @@ import javax.inject.Inject
 class UISettingsRepository @Inject constructor(private val database: BlockedDatabase) {
     private val settingsDao: SettingsDao = database.settingsDao()
 
-    private fun settingToSettingType(setting: Setting): SettingType<out Number> =
-        when (setting.type) {
+    private fun settingToSettingType(setting: Setting): SettingType<out Any> {
+        return when (setting.type) {
             SettingTypeValue.Int -> (UISettings.defaultSettings[setting.name] as SettingType.IntSetting).copy(
                 value = setting.value.toInt()
             )
@@ -23,8 +24,9 @@ class UISettingsRepository @Inject constructor(private val database: BlockedData
                 value = setting.value.toLong()
             )
         }
+    }
 
-    private fun settingTypeToSetting(settingType: SettingType<out Number>): Setting {
+    private fun settingTypeToSetting(settingType: SettingType<out Any>): Setting {
         val x = when (settingType) {
             is SettingType.FloatSetting -> SettingTypeValue.Float
             is SettingType.LongSetting -> SettingTypeValue.Long
@@ -36,9 +38,11 @@ class UISettingsRepository @Inject constructor(private val database: BlockedData
     fun getUISettings(): Flow<UISettings> = settingsDao.get().map { x ->
         when (x) {
             null -> {
+                Log.d("GAMES", "Got null settings in flow")
                 UISettings()
             }
             else -> {
+                Log.d("GAMES", "Got correct: ${x}")
                 UISettings.fromValuesAndDefaults(
                     x.settings.map { it.name to settingToSettingType(it) }.toMap(),
                     x.colours?.let {
@@ -53,6 +57,7 @@ class UISettingsRepository @Inject constructor(private val database: BlockedData
         uiSettings.colourSettings.first?.run {
             settingsDao.insert(ColourChoice(colourSettingsId = this))
         }
-        settingsDao.insert(uiSettings.settings.map { (_, setting) -> settingTypeToSetting(setting) })
+        val settings = uiSettings.settings.map { (_, s) -> settingTypeToSetting(s) }
+        settingsDao.insert(settings)
     }
 }

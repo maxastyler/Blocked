@@ -1,15 +1,12 @@
 package com.maxtyler.blocked.database
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
-import androidx.room.TypeConverters
 import com.maxtyler.blocked.game.Piece
 import com.maxtyler.blocked.game.Rotation
 import com.maxtyler.blocked.game.Vec2
 import java.util.*
 
-class SaveConverters {
+class DatabaseConverters {
     @TypeConverter
     fun fromTimestamp(value: Long?): Date? {
         return value?.let { Date(it) }
@@ -62,4 +59,11 @@ class SaveConverters {
     @TypeConverter
     fun stringsToPieces(strings: String?): List<Piece>? =
         strings?.split(",")?.let { it.map { Piece.valueOf(it) } }
+
+    @TypeConverter
+    fun typeValueToInt(type: SettingTypeValue) = type.ordinal
+
+    @TypeConverter
+    fun intToTypeValue(type: Int): SettingTypeValue? = SettingTypeValue.values().getOrNull(type)
+
 }

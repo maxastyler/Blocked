@@ -5,11 +5,11 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [Settings::class, Save::class, Score::class, Colours::class, ColourChoice::class, Setting::class],
-    version = 6,
+    entities = [Save::class, Score::class, Colours::class, ColourChoice::class, Setting::class],
+    version = 8,
     exportSchema = true
 )
-@TypeConverters(SaveConverters::class)
+@TypeConverters(DatabaseConverters::class)
 abstract class BlockedDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
     abstract fun saveDao(): SaveDao

@@ -19,22 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.maxtyler.blocked.game.ColourSettings
-import com.maxtyler.blocked.game.SettingType
 import com.maxtyler.blocked.game.UISettings
-
-typealias TempUiSettings = Pair<Map<String, Pair<SettingType<out Number>, String>>, Pair<Int?, ColourSettings>>
 
 @Composable
 fun SettingsView(viewModel: SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     val uiSettings by viewModel.uiSettingsFlow.collectAsState(UISettings())
-    var tempUiSettings by remember(uiSettings) {
-        mutableStateOf(
-            Pair(
-                uiSettings.settings.map { (k, v) -> k to Pair(v, v.value.toString()) }.toMap(),
-                uiSettings.colourSettings
-            )
-        )
-    }
 
     val colourSettings by viewModel.colourSettingsFlow.collectAsState(listOf())
 
@@ -43,9 +32,8 @@ fun SettingsView(viewModel: SettingsViewModel = androidx.lifecycle.viewmodel.com
     Box() {
         Column() {
             UISettingsView(
-                tempUiSettings = tempUiSettings,
-                { tempUiSettings = tempUiSettings.copy() },
-                { viewModel.writeUiSettings({it}) })
+                uiSettings = uiSettings,
+                {})
             Button(onClick = { viewModel.newColourSettings() }) {
                 Text("New colour settings")
             }
@@ -63,23 +51,36 @@ fun SettingsView(viewModel: SettingsViewModel = androidx.lifecycle.viewmodel.com
 
 @Composable
 fun UISettingsView(
-    tempUiSettings: TempUiSettings,
-    onUpdate: (TempUiSettings) -> Unit = {},
-    onSubmit: () -> Unit = {},
+    uiSettings: UISettings,
+    onSubmit: (UISettings) -> Unit = {},
 ) {
+    var tempUiSettings by remember(uiSettings) {
+        mutableStateOf(
+            TempUISettings(uiSettings)
+        )
+    }
+
     val scrollState = rememberScrollState()
     Column(Modifier.scrollable(scrollState, orientation = Orientation.Vertical)) {
-        tempUiSettings.first.forEach { (k, v) ->
+        tempUiSettings.settings.forEach { (k, v) ->
             Row() {
                 Text(
-                    v.first.name,
+                    k,
                     softWrap = true,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
-                SubmittableNumInput(value = v.second, onUpdate = { s -> })
+                SubmittableNumInput(
+                    value = v,
+                    onUpdate = { tempUiSettings = tempUiSettings.updateSetting(k to it) })
             }
         }
-        Button(onClick = onSubmit) {
+        Button(onClick = {
+            when (val x = tempUiSettings.toUISettings()) {
+                is TempUISettings.ToUISettingsResult.Ok -> onSubmit(uiSettings.mergeSettings(x.settings))
+                is TempUISettings.ToUISettingsResult.Error -> {
+                }
+            }
+        }) {
             Text("Save values")
         }
     }

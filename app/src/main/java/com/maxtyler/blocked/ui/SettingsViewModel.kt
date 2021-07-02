@@ -31,7 +31,6 @@ class SettingsViewModel @Inject constructor(
     fun writeUiSettings(uiSettings: UISettings) {
         viewModelScope.launch(Dispatchers.IO) {
             uiSettingsRepository.updateSettings(uiSettings)
-
         }
     }
 

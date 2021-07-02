@@ -15,4 +15,4 @@ data class Colours(
     var ZColour: Int,
     var LColour: Int,
     var OColour: Int,
-    )
+)
