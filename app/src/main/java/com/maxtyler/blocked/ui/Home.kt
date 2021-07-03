@@ -1,18 +1,22 @@
 package com.maxtyler.blocked.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Button
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun Home(onStartGame: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Button(onClick = onStartGame, modifier = Modifier.align(Alignment.Center)) {
-            Text(text = "Start Game")
+fun Home() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "game") {
+        composable("game") {
+            val vm: GameViewModel = hiltViewModel()
+            GameScaffold(vm, navController = navController)
+        }
+        composable("settings") {
+            val vm: SettingsViewModel = hiltViewModel()
+            SettingsView(vm)
         }
     }
 }

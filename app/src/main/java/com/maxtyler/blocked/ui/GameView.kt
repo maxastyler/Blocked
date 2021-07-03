@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.blocked.game.BoardView
 import com.example.blocked.game.DrawPiece
 import com.maxtyler.blocked.database.Score
@@ -129,7 +130,7 @@ fun NextPieces(pieces: List<Piece>, colourSettings: ColourSettings) {
 }
 
 @Composable
-fun GameScaffold(viewModel: GameViewModel = viewModel()) {
+fun GameScaffold(viewModel: GameViewModel = viewModel(), navController: NavController) {
     val scaffoldState = rememberScaffoldState()
     LaunchedEffect(key1 = Unit) {
         viewModel.snackbarChannel.collectLatest {
@@ -138,12 +139,12 @@ fun GameScaffold(viewModel: GameViewModel = viewModel()) {
     }
     Scaffold(scaffoldState = scaffoldState,
         snackbarHost = { SnackbarHost(hostState = it) }) {
-        GameView(viewModel)
+        GameView(viewModel, navController = navController)
     }
 }
 
 @Composable
-fun GameView(viewModel: GameViewModel) {
+fun GameView(viewModel: GameViewModel, navController: NavController) {
     RunFunctionOnPauseAndResume(onPause = {
         viewModel.pause()
         if (viewModel.gameState.value.mode != GameState.Mode.GameOver) viewModel.saveState()
@@ -271,6 +272,7 @@ fun GameView(viewModel: GameViewModel) {
                     PauseMenu(
                         onResume = { viewModel.resume() },
                         onNewGame = { viewModel.restart() },
+                        onSettings = { navController.navigate("settings") },
                         viewModel
                     )
                 }
@@ -323,7 +325,12 @@ fun PlayGamesView(
 }
 
 @Composable
-fun PauseMenu(onResume: () -> Unit, onNewGame: () -> Unit, vm: GameViewModel) {
+fun PauseMenu(
+    onResume: () -> Unit,
+    onNewGame: () -> Unit,
+    onSettings: () -> Unit,
+    vm: GameViewModel
+) {
 
     Card(backgroundColor = Color.LightGray.copy(alpha = 0.5F)) {
         Column(
@@ -332,6 +339,10 @@ fun PauseMenu(onResume: () -> Unit, onNewGame: () -> Unit, vm: GameViewModel) {
         ) {
             Button(onClick = onResume, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Text("Resume")
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(onClick = onSettings, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text("Settings")
             }
             Spacer(modifier = Modifier.height(20.dp))
             Button(onClick = onNewGame, modifier = Modifier.align(Alignment.CenterHorizontally)) {

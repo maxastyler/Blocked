@@ -9,9 +9,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -24,7 +22,7 @@ import com.maxtyler.blocked.game.ColourSettings
 import com.maxtyler.blocked.game.UISettings
 
 @Composable
-fun SettingsView(viewModel: SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+fun SettingsView(viewModel: SettingsViewModel) {
     val uiSettings by viewModel.uiSettingsFlow.collectAsState(UISettings())
 
     val colourSettings by viewModel.colourSettingsFlow.collectAsState(listOf())
@@ -48,6 +46,14 @@ fun SettingsView(viewModel: SettingsViewModel = androidx.lifecycle.viewmodel.com
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SettingsScaffold(viewModel: SettingsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+    val scaffoldState = rememberScaffoldState()
+    Scaffold(scaffoldState = scaffoldState) {
+        SettingsView(viewModel)
     }
 }
 
