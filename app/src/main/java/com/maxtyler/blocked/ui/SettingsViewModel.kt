@@ -1,5 +1,6 @@
 package com.maxtyler.blocked.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maxtyler.blocked.game.ColourSettings
@@ -29,6 +30,7 @@ class SettingsViewModel @Inject constructor(
      * @param uiSettings The new settings to add to the database
      */
     fun writeUiSettings(uiSettings: UISettings) {
+        Log.d("GAMES", "New ui settings: ${uiSettings}")
         viewModelScope.launch(Dispatchers.IO) {
             uiSettingsRepository.updateSettings(uiSettings)
         }
@@ -36,6 +38,7 @@ class SettingsViewModel @Inject constructor(
 
     /**
      * Submit the new colour settings
+     * @param colourSettings The new pair of integer, coloursettings to write to the database
      */
     fun writeColourSettings(colourSettings: Pair<Int, ColourSettings>) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -43,12 +46,19 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Create a new colour settings in the database
+     */
     fun newColourSettings() {
         viewModelScope.launch(Dispatchers.IO) {
             colourSettingsRepository.createNew()
         }
     }
 
+    /**
+     * Delete the given colour setting from the database
+     * @param id The id in the database to delete
+     */
     fun deleteColourSettings(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             colourSettingsRepository.deleteColourSettings(id)

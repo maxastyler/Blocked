@@ -6,6 +6,7 @@ import com.maxtyler.blocked.game.ColourSettings
 import com.maxtyler.blocked.game.SettingType
 import com.maxtyler.blocked.game.UISettings
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -35,23 +36,19 @@ class UISettingsRepository @Inject constructor(private val database: BlockedData
         return Setting(settingType.name, type = x, value = settingType.value.toString())
     }
 
-    fun getUISettings(): Flow<UISettings> = settingsDao.get().map { x ->
-        when (x) {
-            null -> {
-                Log.d("GAMES", "Got null settings in flow")
-                UISettings()
+
+    fun getUISettings(): Flow<UISettings> =
+        settingsDao.getSettings().map { it.map { it.name to settingToSettingType(it) }.toMap() }
+            .combine(settingsDao.getColour()) { settingsMap, colours ->
+                Log.d("GAMES", "Flow settings are: ${settingsMap}")
+                UISettings.fromValuesAndDefaults(settingsMap,
+                    colours?.let {
+                        Pair(
+                            it.colourChoice.colourSettingsId,
+                            it.colours?.let { ColourSettingsRepository.coloursToColourSettings(it) }
+                                ?: ColourSettings())
+                    } ?: Pair(null, ColourSettings()))
             }
-            else -> {
-                Log.d("GAMES", "Got correct: ${x}")
-                UISettings.fromValuesAndDefaults(
-                    x.settings.map { it.name to settingToSettingType(it) }.toMap(),
-                    x.colours?.let {
-                        Pair(it.coloursId, ColourSettingsRepository.coloursToColourSettings(it))
-                    } ?: Pair(null, ColourSettings())
-                )
-            }
-        }
-    }
 
     suspend fun updateSettings(uiSettings: UISettings) {
         uiSettings.colourSettings.first?.run {

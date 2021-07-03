@@ -61,7 +61,9 @@ class DatabaseConverters {
         strings?.split(",")?.let { it.map { Piece.valueOf(it) } }
 
     @TypeConverter
-    fun typeValueToInt(type: SettingTypeValue) = type.ordinal
+    fun typeValueToInt(type: SettingTypeValue): Int {
+        return type.ordinal
+    }
 
     @TypeConverter
     fun intToTypeValue(type: Int): SettingTypeValue? = SettingTypeValue.values().getOrNull(type)

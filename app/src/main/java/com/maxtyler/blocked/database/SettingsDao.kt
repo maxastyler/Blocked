@@ -17,9 +17,12 @@ interface SettingsDao {
     @Query("DELETE from colourchoice")
     suspend fun deleteColourChoice()
 
+    @Query("SELECT * FROM setting")
+    fun getSettings(): Flow<List<Setting>>
+
     @Transaction
-    @Query("SELECT * FROM setting, colourchoice")
-    fun get(): Flow<SettingsAndColours?>
+    @Query("SELECT * FROM colourchoice")
+    fun getColour(): Flow<ChosenColours?>
 
     @Query("DELETE FROM setting")
     suspend fun clearSettings()
